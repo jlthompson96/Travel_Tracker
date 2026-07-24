@@ -5,7 +5,7 @@ import type { Trip, TripStatus, TripType } from '../../../types/travel';
 import { getStampRecipe } from '../utils/stampRecipe';
 
 interface PassportStampProps {
-  trip: Pick<Trip, 'id' | 'destination' | 'tripTypes' | 'status'>;
+  trip: Pick<Trip, 'id' | 'destination' | 'tripTypes' | 'status' | 'country'>;
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -126,6 +126,21 @@ export function PassportStamp({ trip, size = 'md' }: PassportStampProps) {
             {recipe.label}
           </textPath>
         </text>
+        {recipe.abbreviation && (
+          <text
+            x={CX}
+            y={71}
+            fontSize={8.5}
+            fontWeight={700}
+            letterSpacing="0.06em"
+            textAnchor="middle"
+            fill="currentColor"
+            stroke="currentColor"
+            strokeWidth={0.3}
+          >
+            {recipe.abbreviation}
+          </text>
+        )}
         <text
           fontSize={6.8}
           letterSpacing="0.05em"
@@ -140,7 +155,13 @@ export function PassportStamp({ trip, size = 'md' }: PassportStampProps) {
         </text>
       </svg>
 
-      <Icon size={ICON_SIZE[size]} strokeWidth={1.75} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" />
+      <Icon
+        size={ICON_SIZE[size]}
+        strokeWidth={1.75}
+        className={`absolute left-1/2 -translate-x-1/2 -translate-y-1/2 ${
+          recipe.abbreviation ? 'top-[39%]' : 'top-1/2'
+        }`}
+      />
     </motion.div>
   );
 }

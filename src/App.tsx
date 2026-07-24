@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Compass, LayoutGrid, Map as MapIcon } from 'lucide-react';
+import { Clock, Compass, LayoutGrid, Map as MapIcon } from 'lucide-react';
 import { TripDashboard } from './features/trips/components/TripDashboard';
 import { TravelMap } from './features/map/components/TravelMap';
 import { MapPage } from './features/map/components/MapPage';
 import { TripStats } from './features/budget/components/TripStats';
 import { TripTimeline } from './features/itinerary/components/TripTimeline';
+import { TimelinePage } from './features/itinerary/components/TimelinePage';
 import { useFilteredTrips } from './features/trips/hooks/useFilteredTrips';
 
-type Tab = 'dashboard' | 'map';
+type Tab = 'dashboard' | 'map' | 'timeline';
 
 function TabButton({
   active,
@@ -98,6 +99,9 @@ export default function App() {
         <TabButton active={tab === 'map'} onClick={() => setTab('map')} icon={<MapIcon size={14} />}>
           Map
         </TabButton>
+        <TabButton active={tab === 'timeline'} onClick={() => setTab('timeline')} icon={<Clock size={14} />}>
+          Timeline
+        </TabButton>
       </nav>
 
       <main className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-10 sm:px-10">
@@ -124,8 +128,10 @@ export default function App() {
               </aside>
             </div>
           </>
-        ) : (
+        ) : tab === 'map' ? (
           <MapPage {...filtering} />
+        ) : (
+          <TimelinePage {...filtering} />
         )}
       </main>
     </div>
