@@ -1,4 +1,4 @@
-import type { Trip, TripType } from '../../../types/travel';
+import type { Country, Trip, TripType } from '../../../types/travel';
 
 export type StampShape = 'rings' | 'scallop' | 'hex';
 
@@ -9,6 +9,44 @@ export interface StampRecipe {
   dashPattern: string;
   iconKey: TripType | 'default';
   label: string;
+  /** State code for US destinations (parsed from the title), else a country code. */
+  abbreviation: string | null;
+}
+
+/** ISO 3166-1 alpha-3 codes for the live "Country" select options. */
+const COUNTRY_CODES: Record<Country, string> = {
+  USA: 'USA',
+  Greece: 'GRC',
+  Italy: 'ITA',
+  France: 'FRA',
+  Spain: 'ESP',
+  Japan: 'JPN',
+  Mexico: 'MEX',
+  Portugal: 'PRT',
+  Thailand: 'THA',
+  'Costa Rica': 'CRI',
+  Iceland: 'ISL',
+  Ireland: 'IRL',
+  Germany: 'DEU',
+  Hungary: 'HUN',
+  Bulgaria: 'BGR',
+  Ukraine: 'UKR',
+  'Vatican City': 'VAT',
+  'New Zealand': 'NZL',
+  'St. Vincent and the Grenadines': 'VCT',
+  Australia: 'AUS',
+};
+
+/** US destinations are titled "Place Name, ST" in the live data — pull the trailing state code. */
+function usStateCode(destination: string): string | null {
+  const match = destination.match(/,\s*([A-Z]{2})$/);
+  return match ? match[1] : null;
+}
+
+function getAbbreviation(destination: string, country: Country | null): string | null {
+  if (!country) return null;
+  if (country === 'USA') return usStateCode(destination) ?? COUNTRY_CODES.USA;
+  return COUNTRY_CODES[country] ?? null;
 }
 
 /** djb2 string hash — deterministic, so the same trip always renders the same stamp. */
@@ -32,7 +70,9 @@ const DASH_PATTERNS = ['5 1.5 3 2 7 1.5', '4 1 6 1.5 3 1', '6 2 4 1 5 2', '3 1.5
 /** Every trip gets its own stamp — shape, rotation, tick count, and dash pattern are all
  * derived from the trip id, so the same place always stamps the same way but no two
  * places look identical. */
-export function getStampRecipe(trip: Pick<Trip, 'id' | 'destination' | 'tripTypes'>): StampRecipe {
+export function getStampRecipe(
+  trip: Pick<Trip, 'id' | 'destination' | 'tripTypes' | 'country'>,
+): StampRecipe {
   const hash = hashString(trip.id);
 
   return {
@@ -42,5 +82,6 @@ export function getStampRecipe(trip: Pick<Trip, 'id' | 'destination' | 'tripType
     dashPattern: DASH_PATTERNS[hash % DASH_PATTERNS.length],
     iconKey: trip.tripTypes[0] ?? 'default',
     label: shortLabel(trip.destination),
+    abbreviation: getAbbreviation(trip.destination, trip.country),
   };
 }
