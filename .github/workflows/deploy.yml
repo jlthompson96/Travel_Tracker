@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch: {}
+  schedule:
+    - cron: '0 6 * * 1' # every Monday at 06:00 UTC — refreshes Notion data even with no code changes
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
