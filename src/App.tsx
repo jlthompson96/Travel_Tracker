@@ -87,7 +87,7 @@ export default function App() {
           transition={{ duration: 0.5, delay: 0.08 }}
           className="relative mt-1 max-w-xl font-display text-3xl font-semibold leading-tight sm:text-4xl"
         >
-          Where We've been, where We're going
+          Joey and Sarah's Travel Tracker
         </motion.h1>
       </header>
 
