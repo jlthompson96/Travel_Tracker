@@ -32,6 +32,7 @@ jobs:
       - run: npm run build
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          VITE_SITE_PASSWORD_HASH: ${{ secrets.VITE_SITE_PASSWORD_HASH }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
