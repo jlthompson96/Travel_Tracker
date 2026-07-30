@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapContainer, Marker, Polyline, TileLayer, Tooltip as LeafletTooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Compass, Footprints, Home, Milestone, Route } from 'lucide-react';
+import { Compass, Footprints, Globe2, Home, Milestone, Route } from 'lucide-react';
 import { computeTripStats, HOME_LOCATION, useTrips } from '../../../services/notionAdapter';
 import { haversineMiles } from '../../../utils/geo';
+import { ALL_REGIONS, regionForCountry, type Region } from '../../../utils/regions';
 import { homeIcon, stampIcon } from '../../map/utils/mapIcons';
-import type { Trip } from '../../../types/travel';
+import type { Country, Trip } from '../../../types/travel';
 
 const EARTH_CIRCUMFERENCE_MILES = 24_901;
 
@@ -74,6 +75,11 @@ export function MilesPage() {
   const farthest = farthestFirst[0];
   const closest = farthestFirst[farthestFirst.length - 1];
 
+  const visitedCountries = useMemo(
+    () => Array.from(new Set(beenThere.map((t) => t.country).filter((c): c is Country => !!c))),
+    [beenThere],
+  );
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-5">
@@ -99,7 +105,7 @@ export function MilesPage() {
   return (
     <section className="flex flex-col gap-8">
       <div className="flex flex-col gap-1 border-b border-dashed border-slate/20 pb-5">
-        <h2 className="font-display text-lg font-semibold text-ink-navy">Miles Traveled</h2>
+        <h2 className="font-display text-lg font-semibold text-ink">Miles Traveled</h2>
         <p className="font-mono text-xs text-slate/60">
           Round-trip distance from Fort Mill, SC to every "Been There" destination
         </p>
@@ -118,12 +124,12 @@ export function MilesPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35 }}
-              className="flex flex-col justify-center gap-1 border border-slate/15 bg-white/50 p-5 shadow-sm sm:col-span-1"
+              className="flex flex-col justify-center gap-1 border border-slate/15 bg-surface/50 p-5 shadow-sm sm:col-span-1"
             >
               <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60">
                 <Route size={14} /> Total miles traveled
               </div>
-              <p className="font-display text-4xl font-semibold text-ink-navy">{totalMiles.toLocaleString()}</p>
+              <p className="font-display text-4xl font-semibold text-ink">{totalMiles.toLocaleString()}</p>
               <p className="font-mono text-[11px] text-slate/60">{earthBlurb}</p>
             </motion.div>
 
@@ -132,12 +138,12 @@ export function MilesPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, delay: 0.06 }}
-                className="flex flex-col justify-center gap-1 border border-slate/15 bg-white/50 p-5 shadow-sm"
+                className="flex flex-col justify-center gap-1 border border-slate/15 bg-surface/50 p-5 shadow-sm"
               >
                 <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60">
                   <Milestone size={14} /> Farthest trip
                 </div>
-                <p className="font-display text-xl font-semibold leading-snug text-ink-navy">{farthest.destination}</p>
+                <p className="font-display text-xl font-semibold leading-snug text-ink">{farthest.destination}</p>
                 <p className="font-mono text-[11px] text-slate/60">{Math.round(farthest.oneWayMiles).toLocaleString()} mi one-way</p>
               </motion.div>
             )}
@@ -147,12 +153,12 @@ export function MilesPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, delay: 0.12 }}
-                className="flex flex-col justify-center gap-1 border border-slate/15 bg-white/50 p-5 shadow-sm"
+                className="flex flex-col justify-center gap-1 border border-slate/15 bg-surface/50 p-5 shadow-sm"
               >
                 <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60">
                   <Footprints size={14} /> Closest trip
                 </div>
-                <p className="font-display text-xl font-semibold leading-snug text-ink-navy">{closest.destination}</p>
+                <p className="font-display text-xl font-semibold leading-snug text-ink">{closest.destination}</p>
                 <p className="font-mono text-[11px] text-slate/60">{Math.round(closest.oneWayMiles).toLocaleString()} mi one-way</p>
               </motion.div>
             )}
@@ -170,6 +176,8 @@ export function MilesPage() {
           {milesByYear.length >= 2 && <MilesByYearChart data={milesByYear} />}
 
           {farthestFirst.length >= 2 && <FarthestDestinationsChart destinations={farthestFirst.slice(0, 8)} />}
+
+          <WorldCoverage visitedCountries={visitedCountries} />
         </>
       )}
     </section>
@@ -265,7 +273,7 @@ function YearBar({
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
     >
-      <p className="font-mono text-[11px] text-ink-navy">{miles.toLocaleString()}</p>
+      <p className="font-mono text-[11px] text-ink">{miles.toLocaleString()}</p>
       <motion.div
         title={`${year}: ${miles.toLocaleString()} mi`}
         initial={{ height: 0 }}
@@ -314,7 +322,89 @@ function DestinationBar({ destination, max, index }: { destination: Destination;
           className={`h-full rounded-r transition-colors duration-150 ${hover ? 'bg-brass' : 'bg-brass/80'}`}
         />
       </div>
-      <p className="w-16 shrink-0 font-mono text-[11px] text-ink-navy">{Math.round(destination.oneWayMiles).toLocaleString()} mi</p>
+      <p className="w-16 shrink-0 font-mono text-[11px] text-ink">{Math.round(destination.oneWayMiles).toLocaleString()} mi</p>
+    </div>
+  );
+}
+
+function WorldCoverage({ visitedCountries }: { visitedCountries: Country[] }) {
+  const byRegion = useMemo(() => {
+    const map = new Map<Region, Country[]>();
+    for (const region of ALL_REGIONS) map.set(region, []);
+    for (const country of visitedCountries) {
+      const region = regionForCountry(country);
+      if (region) map.get(region)!.push(country);
+    }
+    return map;
+  }, [visitedCountries]);
+
+  const continentsVisited = ALL_REGIONS.filter((region) => (byRegion.get(region)?.length ?? 0) > 0).length;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h3 className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/50">
+        <Globe2 size={13} /> World coverage
+      </h3>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="flex flex-col justify-center gap-1 border border-slate/15 bg-surface/50 p-5 shadow-sm"
+        >
+          <p className="font-display text-4xl font-semibold text-ink">
+            {continentsVisited}
+            <span className="text-lg text-slate/40"> / {ALL_REGIONS.length}</span>
+          </p>
+          <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60">Continents visited</p>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: 0.06 }}
+          className="flex flex-col justify-center gap-1 border border-slate/15 bg-surface/50 p-5 shadow-sm"
+        >
+          <p className="font-display text-4xl font-semibold text-ink">{visitedCountries.length}</p>
+          <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60">Countries &amp; regions visited</p>
+        </motion.div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {ALL_REGIONS.map((region, index) => {
+          const countries = byRegion.get(region) ?? [];
+          const visited = countries.length > 0;
+
+          return (
+            <motion.div
+              key={region}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.04 }}
+              className={`flex flex-col gap-1.5 border p-3 ${visited ? 'border-brass/40 bg-brass/5' : 'border-slate/15 bg-surface/40'}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-display text-sm font-semibold text-ink">{region}</span>
+                <span className={`h-2 w-2 shrink-0 rounded-full ${visited ? 'bg-brass' : 'bg-slate/20'}`} />
+              </div>
+              {visited ? (
+                <div className="flex flex-wrap gap-1">
+                  {countries.map((country) => (
+                    <span
+                      key={country}
+                      className="rounded-full bg-ink-navy/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink/70"
+                    >
+                      {country}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-xs text-slate/40">Not yet</span>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
     </div>
   );
 }

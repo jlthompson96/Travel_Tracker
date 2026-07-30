@@ -63,7 +63,7 @@ export function TripTimeline() {
           <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60">
             {formatRange(trip)}
           </p>
-          <p className="font-display text-base font-semibold text-ink-navy">{trip.destination}</p>
+          <p className="font-display text-base font-semibold text-ink">{trip.destination}</p>
           {trip.dateVisited?.nights != null && (
             <p className="text-xs text-slate/60">{trip.dateVisited.nights} nights</p>
           )}

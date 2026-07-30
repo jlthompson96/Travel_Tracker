@@ -47,7 +47,7 @@ export function PasswordGate({ children }: { children: ReactNode }) {
         className="w-full max-w-sm rounded-lg border border-brass/30 bg-paper p-8 shadow-xl"
       >
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-brass">Travel Tracker</p>
-        <h1 className="mt-1 font-display text-2xl font-semibold text-ink-navy">This trip log is private</h1>
+        <h1 className="mt-1 font-display text-2xl font-semibold text-ink">This trip log is private</h1>
         <p className="mt-2 text-sm text-slate/70">Enter the password to continue.</p>
 
         <input
@@ -65,7 +65,7 @@ export function PasswordGate({ children }: { children: ReactNode }) {
 
         <button
           type="submit"
-          className="mt-4 w-full rounded-md bg-ink-navy px-3 py-2 text-sm font-medium text-paper transition-colors hover:bg-ink-navy/90"
+          className="mt-4 w-full rounded-md bg-ink-navy px-3 py-2 text-sm font-medium text-cream transition-colors hover:bg-ink-navy/90"
         >
           Enter
         </button>

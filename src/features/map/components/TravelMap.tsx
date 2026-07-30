@@ -4,6 +4,7 @@ import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { UseFilteredTrips } from '../../trips/hooks/useFilteredTrips';
 import type { MapRegion, Trip, TripStatus } from '../../../types/travel';
+import { countryMatchesRegion } from '../../../utils/regions';
 import { stampIcon } from '../utils/mapIcons';
 import { TripDetailModal } from '../../trips/components/TripDetails/TripDetailModal';
 import { formatDateRange } from '../../trips/utils/formatTrip';
@@ -65,9 +66,9 @@ export function TravelMap({ data: trips, isLoading, isError, filters, height = 4
 
   const located = (trips ?? []).filter(hasCoordinates).filter((trip) => {
     if (filters.status !== 'All' && trip.status !== filters.status) return false;
-    if (filters.country !== 'All' && trip.country !== filters.country) return false;
-    if (filters.tripType !== 'All' && !trip.tripTypes.includes(filters.tripType)) return false;
-    if (filters.region !== 'All' && filters.region !== 'World' && !matchesRegion(trip, filters.region)) return false;
+    if (filters.countries.length > 0 && (!trip.country || !filters.countries.includes(trip.country))) return false;
+    if (filters.tripTypes.length > 0 && !filters.tripTypes.some((type) => trip.tripTypes.includes(type))) return false;
+    if (filters.region !== 'All' && filters.region !== 'World' && !countryMatchesRegion(trip.country, filters.region)) return false;
     return true;
   });
 
@@ -156,20 +157,6 @@ export function TravelMap({ data: trips, isLoading, isError, filters, height = 4
       )}
     </motion.div>
   );
-}
-
-function matchesRegion(trip: Trip, region: Exclude<MapRegion, 'World' | 'All'>): boolean {
-  const country = trip.country?.toLowerCase() ?? '';
-  const regionMap: Record<Exclude<MapRegion, 'World' | 'All'>, string[]> = {
-    Europe: ['greece', 'italy', 'france', 'spain', 'portugal', 'germany', 'iceland', 'ireland', 'hungary', 'bulgaria', 'ukraine', 'vatican city'],
-    'North America': ['usa', 'mexico', 'canada'],
-    'South America': ['argentina', 'brazil', 'chile', 'peru', 'colombia', 'ecuador', 'uruguay', 'paraguay', 'bolivia'],
-    Asia: ['japan', 'thailand', 'india', 'china', 'singapore', 'malaysia', 'taiwan', 'south korea', 'vietnam'],
-    Africa: ['morocco', 'egypt', 'south africa', 'kenya', 'tanzania', 'nigeria', 'ethiopia'],
-    Oceania: ['australia', 'new zealand', 'fiji', 'papua new guinea'],
-  };
-
-  return regionMap[region].some((name) => country.includes(name));
 }
 
 function MapViewportController({ filters, located }: { filters: { region: MapRegion | 'All' }; located: Trip[] }) {

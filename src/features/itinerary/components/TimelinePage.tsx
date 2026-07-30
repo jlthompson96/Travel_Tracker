@@ -35,7 +35,7 @@ export function TimelinePage({
   return (
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-1 border-b border-dashed border-slate/20 pb-5">
-        <h2 className="font-display text-lg font-semibold text-ink-navy">Timeline</h2>
+        <h2 className="font-display text-lg font-semibold text-ink">Timeline</h2>
         {!isLoading && !isError && (
           <p className="font-mono text-xs text-slate/60">
             {dated.length} dated {dated.length === 1 ? 'trip' : 'trips'} across {groups.length}{' '}
@@ -97,7 +97,7 @@ function YearSection({ group }: { group: YearGroup }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <span className="font-display text-2xl font-semibold text-ink-navy">{group.year}</span>
+        <span className="font-display text-2xl font-semibold text-ink">{group.year}</span>
         <span className="h-px flex-1 bg-slate/15" />
         <span className="font-mono text-[11px] uppercase tracking-wide text-slate/50">
           {group.trips.length} {group.trips.length === 1 ? 'trip' : 'trips'}
@@ -131,7 +131,7 @@ function TimelineEntry({ trip, index }: { trip: Trip; index: number }) {
             setIsOpen(true);
           }
         }}
-        className="group relative flex cursor-pointer flex-col gap-2 rounded border border-transparent p-2 -m-2 transition-colors duration-150 hover:border-slate/15 hover:bg-white/60 sm:flex-row sm:items-start sm:gap-4"
+        className="group relative flex cursor-pointer flex-col gap-2 rounded border border-transparent p-2 -m-2 transition-colors duration-150 hover:border-slate/15 hover:bg-surface/60 sm:flex-row sm:items-start sm:gap-4"
         initial={{ opacity: 0, x: -12 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true, margin: '-40px' }}
@@ -159,7 +159,7 @@ function TimelineEntry({ trip, index }: { trip: Trip; index: number }) {
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-            <p className="font-display text-base font-semibold text-ink-navy">{trip.destination}</p>
+            <p className="font-display text-base font-semibold text-ink">{trip.destination}</p>
             {dateLabel && (
               <p className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wide text-slate/60">
                 <CalendarDays size={12} className="text-brass" />
@@ -193,7 +193,7 @@ function TimelineEntry({ trip, index }: { trip: Trip; index: number }) {
               {trip.tripTypes.map((type) => (
                 <span
                   key={type}
-                  className="rounded-full bg-ink-navy/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink-navy/70"
+                  className="rounded-full bg-ink-navy/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink/70"
                 >
                   {type}
                 </span>
