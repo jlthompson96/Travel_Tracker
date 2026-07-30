@@ -1,16 +1,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Globe2, MapPinned, PiggyBank, PlaneTakeoff } from 'lucide-react';
+import { Globe2, MapPinned, PlaneTakeoff, Route } from 'lucide-react';
 import { useTrips } from '../../../services/notionAdapter';
 import { computeTripStats } from '../../../services/notionAdapter';
 
-/**
- * NOTE: the live Travel Tracker database has no cost/expense property today
- * (see README > Schema gaps), so this module surfaces the aggregate metrics
- * the *real* data supports rather than inventing budget numbers. If you add
- * a Number property named "Budget" in Notion, `computeTripStats` picks it up
- * automatically (see `hasBudgetData`) and the currency card below appears.
- */
 export function TripStats() {
   const { data: trips, isLoading, isError } = useTrips();
 
@@ -46,29 +39,14 @@ export function TripStats() {
         value={stats.totalBucketList}
         sub={topCountry ? `Top: ${topCountry[0]}` : undefined}
       />
-      {stats.hasBudgetData ? (
-        <StatCard
-          index={3}
-          icon={<PiggyBank size={16} />}
-          label="Total spent"
-          value={stats.totalBudget!}
-          format={(n) => `$${n.toLocaleString()}`}
-        />
-      ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: 0.12 }}
-          className="flex flex-col justify-center gap-1 border border-dashed border-slate/20 p-4 text-slate/60"
-        >
-          <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide">
-            <PiggyBank size={14} /> Budget
-          </div>
-          <p className="text-xs leading-snug">
-            Add a "Budget" number property in Notion to track spend here.
-          </p>
-        </motion.div>
-      )}
+      <StatCard
+        index={3}
+        icon={<Route size={16} />}
+        label="Miles traveled"
+        value={stats.milesTraveled}
+        sub="Round-trip from Fort Mill, SC"
+        format={(n) => n.toLocaleString()}
+      />
     </div>
   );
 }

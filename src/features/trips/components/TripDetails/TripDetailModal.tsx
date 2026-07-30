@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CalendarDays, MapPin, StickyNote, Wallet, X, ExternalLink } from 'lucide-react';
+import { CalendarDays, MapPin, StickyNote, X, ExternalLink } from 'lucide-react';
 import type { Trip } from '../../../../types/travel';
 import { PassportStamp } from '../PassportStamp';
 import { formatDateRange } from '../../utils/formatTrip';
@@ -107,12 +107,6 @@ export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
                   <div className="flex items-center gap-2">
                     <MapPin size={15} className="shrink-0 text-brass" />
                     <span>{trip.location.address}</span>
-                  </div>
-                )}
-                {trip.budget != null && (
-                  <div className="flex items-center gap-2">
-                    <Wallet size={15} className="shrink-0 text-brass" />
-                    <span>${trip.budget.toLocaleString()}</span>
                   </div>
                 )}
               </div>
