@@ -28,6 +28,10 @@
 import { useQuery } from '@tanstack/react-query';
 import type { NotionQueryResponse, RatingStars, Trip, TripStats, TripType } from '../types/travel';
 import { transformNotionPages } from '../utils/transformNotionData';
+import { haversineMiles, type LatLng } from '../utils/geo';
+
+/** Origin point for the "Miles Traveled" stat — no home-base property exists in Notion, so this is hardcoded. */
+export const HOME_LOCATION: LatLng = { lat: 35.0072, lng: -80.9451 }; // Fort Mill, SC
 
 const PROXY_URL =
   import.meta.env.VITE_NOTION_PROXY_URL ??
@@ -74,9 +78,7 @@ export function useTrips() {
 }
 
 // ---------------------------------------------------------------------------
-// Derived stats — powers features/budget (see README: no cost property exists
-// yet, so this surfaces the real aggregates the data supports instead of
-// fabricating budget numbers).
+// Derived stats — powers features/stats.
 // ---------------------------------------------------------------------------
 
 const ALL_TRIP_TYPES: TripType[] = ['Beach', 'City', 'Hiking', 'Food', 'Road Trip', 'Culture'];
@@ -92,13 +94,15 @@ export function computeTripStats(trips: Trip[]): TripStats {
   let totalBucketList = 0;
   const visitedCountries = new Set<string>();
   const bucketCountries = new Set<string>();
-  let totalBudget = 0;
-  let hasBudgetData = false;
+  let milesTraveled = 0;
 
   for (const trip of trips) {
     if (trip.status === 'Been There') {
       totalBeenThere += 1;
       if (trip.country) visitedCountries.add(trip.country);
+      if (trip.location?.latitude != null && trip.location?.longitude != null) {
+        milesTraveled += 2 * haversineMiles(HOME_LOCATION, { lat: trip.location.latitude, lng: trip.location.longitude });
+      }
     } else if (trip.status === 'Bucket List') {
       totalBucketList += 1;
       if (trip.country) bucketCountries.add(trip.country);
@@ -112,11 +116,6 @@ export function computeTripStats(trips: Trip[]): TripStats {
       const year = trip.dateVisited.start.slice(0, 4);
       byYear[year] = (byYear[year] ?? 0) + 1;
     }
-
-    if (trip.budget != null) {
-      hasBudgetData = true;
-      totalBudget += trip.budget;
-    }
   }
 
   return {
@@ -128,7 +127,6 @@ export function computeTripStats(trips: Trip[]): TripStats {
     byTripType,
     byRating,
     byYear,
-    hasBudgetData,
-    totalBudget: hasBudgetData ? totalBudget : null,
+    milesTraveled: Math.round(milesTraveled),
   };
 }

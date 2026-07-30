@@ -147,7 +147,6 @@ export function transformNotionPage(page: NotionTravelPage): Trip {
     notes: parseRichText(props.Notes),
     photos: parsePhotos(props.Photos),
     passportStamp: parsePassportStamp(props['Passport Stamp']),
-    budget: props.Budget?.number ?? null,
     createdTime: page.created_time,
   };
 }

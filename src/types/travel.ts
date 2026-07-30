@@ -65,11 +65,9 @@ export interface TripDateRange {
 }
 
 /**
- * NOTE ON "Budget" and "Itinerary" (see README "Schema gaps"):
- * The live database has no cost/expense property and no day-by-day
- * sub-item relation. `budget` is kept optional and unused today so the
- * Budget module can light up automatically if that property is ever
- * added to Notion — see services/notionAdapter.ts.
+ * NOTE ON "Itinerary" (see README "Schema gaps"):
+ * The live database has no day-by-day sub-item relation — "Date Visited" is
+ * a single start/end range per trip, not a linked itinerary.
  */
 export interface Trip {
   id: string;
@@ -86,8 +84,6 @@ export interface Trip {
   photos: TripPhoto[];
   /** Opaque computed value from the "Passport Stamp" formula property. */
   passportStamp: string | null;
-  /** Forward-compatible: not present in the live schema today. */
-  budget: number | null;
   createdTime: string;
 }
 
@@ -100,9 +96,8 @@ export interface TripStats {
   byTripType: Record<TripType, number>;
   byRating: Record<RatingStars, number>;
   byYear: Record<string, number>;
-  /** True once at least one Trip has a non-null `budget`. Drives the Budget UI. */
-  hasBudgetData: boolean;
-  totalBudget: number | null;
+  /** Straight-line round-trip miles from HOME_LOCATION to every "Been There" trip, summed. */
+  milesTraveled: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -186,8 +181,6 @@ export interface NotionTravelPageProperties {
   Notes: NotionRichTextProperty;
   Photos: NotionFilesProperty;
   'Passport Stamp': NotionFormulaProperty;
-  /** Optional — only present if you add a Number property named "Budget". */
-  Budget?: { type: 'number'; number: number | null };
 }
 
 export interface NotionTravelPage {
