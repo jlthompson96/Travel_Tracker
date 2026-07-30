@@ -14,7 +14,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search destinations or notes…"
-        className="w-full rounded-full border border-slate/20 bg-white/60 py-2 pl-9 pr-4 text-sm text-slate placeholder:text-slate/40 focus:border-brass"
+        className="w-full rounded-full border border-slate/20 bg-surface/60 py-2 pl-9 pr-4 text-sm text-slate placeholder:text-slate/40 focus:border-brass"
       />
     </div>
   );

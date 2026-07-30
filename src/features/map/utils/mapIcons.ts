@@ -6,7 +6,8 @@ import type { TripStatus } from '../../../types/travel';
 // `count` > 1 renders a bigger badge with the visit count so stacked trips at
 // one location read as a single grouped pin instead of overlapping dots.
 export function stampIcon(status: TripStatus | null, count = 1) {
-  const color = status === 'Been There' ? '#A6392B' : '#1E6E76';
+  // rgb(var(...)) so these markers pick up the current light/dark theme too.
+  const color = status === 'Been There' ? 'rgb(var(--color-stamp-red))' : 'rgb(var(--color-horizon-teal))';
 
   if (count <= 1) {
     return L.divIcon({

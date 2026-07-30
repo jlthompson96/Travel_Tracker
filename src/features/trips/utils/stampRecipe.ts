@@ -35,6 +35,8 @@ const COUNTRY_CODES: Record<Country, string> = {
   'New Zealand': 'NZL',
   'St. Vincent and the Grenadines': 'VCT',
   Australia: 'AUS',
+  Scotland: 'SCO',
+  England: 'ENG',
 };
 
 /** US destinations are titled "Place Name, ST" in the live data — pull the trailing state code. */

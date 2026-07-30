@@ -1,12 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CalendarDays, MapPin, StickyNote, X, ExternalLink } from 'lucide-react';
+import { CalendarDays, Check, Link as LinkIcon, MapPin, StickyNote, X, ExternalLink } from 'lucide-react';
 import type { Trip } from '../../../../types/travel';
 import { PassportStamp } from '../PassportStamp';
 import { formatDateRange } from '../../utils/formatTrip';
 import TripPictures from './TripPictures';
+import { PhotoLightbox } from './PhotoLightbox';
 import { TripLocationMap } from './TripLocationMap';
+import { WeatherWidget } from './WeatherWidget';
 
 interface TripDetailModalProps {
   trip: Trip;
@@ -21,11 +23,29 @@ const PRIORITY_DOT: Record<string, string> = {
 };
 
 export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
+  const [copied, setCopied] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  // Reset the lightbox whenever the modal itself closes, so reopening a
+  // (possibly different) trip never resumes on a stale photo index.
+  useEffect(() => {
+    if (!open) setLightboxIndex(null);
+  }, [open]);
+
+  // One listener for both layers — Escape closes the lightbox first if it's
+  // open, otherwise the modal; arrow keys page through photos. Keeping this
+  // unified avoids two independent Escape handlers racing each other.
   useEffect(() => {
     if (!open) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (lightboxIndex != null) setLightboxIndex(null);
+        else onClose();
+      } else if (lightboxIndex != null && trip.photos.length > 1) {
+        if (e.key === 'ArrowRight') setLightboxIndex((i) => (i! + 1) % trip.photos.length);
+        if (e.key === 'ArrowLeft') setLightboxIndex((i) => (i! - 1 + trip.photos.length) % trip.photos.length);
+      }
     };
     document.addEventListener('keydown', onKeyDown);
     const { overflow } = document.body.style;
@@ -35,11 +55,38 @@ export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
       document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = overflow;
     };
-  }, [open, onClose]);
+  }, [open, onClose, lightboxIndex, trip.photos.length]);
+
+  // Keeps the address bar a shareable/bookmarkable link to whichever trip is
+  // currently open — replaceState so opening/closing modals doesn't spam
+  // browser history. Reversed on close via the cleanup below.
+  useEffect(() => {
+    if (!open) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('trip', trip.id);
+    window.history.replaceState(null, '', url);
+
+    return () => {
+      const cleanupUrl = new URL(window.location.href);
+      if (cleanupUrl.searchParams.get('trip') === trip.id) {
+        cleanupUrl.searchParams.delete('trip');
+        window.history.replaceState(null, '', cleanupUrl);
+      }
+    };
+  }, [open, trip.id]);
 
   const dateLabel = formatDateRange(trip);
+  const closeLightbox = () => setLightboxIndex(null);
 
-  return createPortal(
+  const copyShareLink = async () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('trip', trip.id);
+    await navigator.clipboard.writeText(url.toString());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const modal = createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -67,7 +114,7 @@ export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute right-3 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-ink-navy/5 text-ink-navy/70 transition hover:bg-ink-navy/10 hover:text-ink-navy"
+              className="absolute right-3 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-ink-navy/5 text-ink/70 transition hover:bg-ink-navy/10 hover:text-ink"
             >
               <X size={18} />
             </button>
@@ -75,7 +122,7 @@ export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
             <div className="flex flex-col gap-5 overflow-y-auto p-6 sm:p-8">
               <div className="flex items-start justify-between gap-3 pr-10">
                 <div>
-                  <h2 className="font-display text-2xl font-semibold leading-snug text-ink-navy sm:text-3xl">
+                  <h2 className="font-display text-2xl font-semibold leading-snug text-ink sm:text-3xl">
                     {trip.destination}
                   </h2>
                   {trip.country && <p className="mt-1 text-sm text-slate/70">{trip.country}</p>}
@@ -88,7 +135,7 @@ export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
                   {trip.tripTypes.map((type) => (
                     <span
                       key={type}
-                      className="rounded-full bg-ink-navy/5 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-ink-navy/70"
+                      className="rounded-full bg-ink-navy/5 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-ink/70"
                     >
                       {type}
                     </span>
@@ -113,7 +160,9 @@ export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
 
               <TripLocationMap trip={trip} />
 
-              <TripPictures trip={trip} />
+              <WeatherWidget latitude={trip.location?.latitude} longitude={trip.location?.longitude} />
+
+              <TripPictures trip={trip} onSelect={setLightboxIndex} />
 
               {trip.notes && (
                 <p className="flex gap-2 text-sm leading-relaxed text-slate/80">
@@ -138,15 +187,26 @@ export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
                   )}
                 </div>
 
-                <a
-                  href={trip.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-horizon-teal hover:underline"
-                >
-                  View in Notion
-                  <ExternalLink size={12} />
-                </a>
+                <div className="no-print flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={copyShareLink}
+                    className="flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-slate/60 hover:text-ink"
+                  >
+                    {copied ? <Check size={12} className="text-horizon-teal" /> : <LinkIcon size={12} />}
+                    {copied ? 'Copied' : 'Copy link'}
+                  </button>
+
+                  <a
+                    href={trip.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-horizon-teal hover:underline"
+                  >
+                    View in Notion
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -154,5 +214,14 @@ export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
       )}
     </AnimatePresence>,
     document.body,
+  );
+
+  return (
+    <>
+      {modal}
+      {lightboxIndex != null && (
+        <PhotoLightbox photos={trip.photos} index={lightboxIndex} onClose={closeLightbox} onNavigate={setLightboxIndex} />
+      )}
+    </>
   );
 }

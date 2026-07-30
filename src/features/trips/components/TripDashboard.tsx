@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Compass } from 'lucide-react';
+import { Compass, Printer } from 'lucide-react';
 import type { UseFilteredTrips } from '../hooks/useFilteredTrips';
 import { SearchBar } from './SearchBar';
 import { FilterPills } from './FilterPills';
+import { SortControl } from './SortControl';
 import { TripCard } from './TripCard';
 
 type TripDashboardProps = UseFilteredTrips;
@@ -16,6 +17,8 @@ export function TripDashboard({
   setSearch,
   filters,
   setFilters,
+  sort,
+  setSort,
   availableCountries,
   availableTripTypes,
 }: TripDashboardProps) {
@@ -23,22 +26,37 @@ export function TripDashboard({
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-4 border-b border-dashed border-slate/20 pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="font-display text-lg font-semibold text-ink-navy">All Trips</h2>
+          <h2 className="font-display text-lg font-semibold text-ink">All Trips</h2>
           {!isLoading && !isError && (
             <p className="mt-0.5 font-mono text-xs text-slate/60">
               {filteredTrips.length} {filteredTrips.length === 1 ? 'trip' : 'trips'} shown
             </p>
           )}
         </div>
-        <SearchBar value={search} onChange={setSearch} />
+        <div className="no-print flex items-center gap-2">
+          <SearchBar value={search} onChange={setSearch} />
+          <button
+            type="button"
+            onClick={() => window.print()}
+            aria-label="Print this trip list"
+            title="Print this trip list"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate/20 bg-surface/50 text-slate/70 transition-colors hover:border-slate/40 hover:bg-surface/80"
+          >
+            <Printer size={15} />
+          </button>
+        </div>
       </div>
 
-      <FilterPills
-        filters={filters}
-        onChange={setFilters}
-        availableCountries={availableCountries}
-        availableTripTypes={availableTripTypes}
-      />
+      <div className="no-print flex flex-col gap-3">
+        <FilterPills
+          filters={filters}
+          onChange={setFilters}
+          availableCountries={availableCountries}
+          availableTripTypes={availableTripTypes}
+        />
+
+        <SortControl sort={sort} onChange={setSort} />
+      </div>
 
       {isLoading && <SkeletonGrid />}
 

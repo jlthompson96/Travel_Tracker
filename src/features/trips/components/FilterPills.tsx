@@ -3,8 +3,10 @@ import type { Country, MapRegion, TripStatus, TripType } from '../../../types/tr
 
 export interface TripFilters {
   status: TripStatus | 'All';
-  country: Country | 'All';
-  tripType: TripType | 'All';
+  /** Empty array means "All" — multiple countries can be selected at once. */
+  countries: Country[];
+  /** Empty array means "All" — multiple trip types can be selected at once. */
+  tripTypes: TripType[];
   region: MapRegion | 'All';
 }
 
@@ -19,16 +21,21 @@ interface FilterPillsProps {
 const STATUS_OPTIONS: Array<TripStatus | 'All'> = ['All', 'Been There', 'Bucket List'];
 const REGION_OPTIONS: Array<MapRegion | 'All'> = ['All', 'World', 'Europe', 'North America', 'South America', 'Asia', 'Africa', 'Oceania'];
 
-function Pill({
+export function Pill({
   active,
   onClick,
   children,
   group,
+  /** Multi-select pills can be active simultaneously, so they can't share one
+   * animated background — each gets its own static fill instead of the
+   * single-select groups' sliding `layoutId` highlight. */
+  multi = false,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
   group: string;
+  multi?: boolean;
 }) {
   return (
     <button
@@ -37,20 +44,33 @@ function Pill({
       aria-pressed={active}
       className={`relative whitespace-nowrap rounded-full border px-3.5 py-1.5 font-mono text-xs uppercase tracking-wide transition-colors duration-150 ${
         active
-          ? 'border-ink-navy text-paper'
-          : 'border-slate/20 bg-white/50 text-slate/70 hover:border-slate/40 hover:bg-white/80'
+          ? 'border-ink-navy text-cream'
+          : 'border-slate/20 bg-surface/50 text-slate/70 hover:border-slate/40 hover:bg-surface/80'
       }`}
     >
-      {active && (
-        <motion.span
-          layoutId={`pill-active-${group}`}
-          transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-          className="absolute inset-0 z-0 rounded-full bg-ink-navy"
-        />
-      )}
+      {active &&
+        (multi ? (
+          <motion.span
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.15 }}
+            className="absolute inset-0 z-0 rounded-full bg-ink-navy"
+          />
+        ) : (
+          <motion.span
+            layoutId={`pill-active-${group}`}
+            transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+            className="absolute inset-0 z-0 rounded-full bg-ink-navy"
+          />
+        ))}
       <span className="relative z-10">{children}</span>
     </button>
   );
+}
+
+function toggleValue<T>(list: T[], value: T): T[] {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
 
 export function FilterPills({ filters, onChange, availableCountries, availableTripTypes }: FilterPillsProps) {
@@ -77,11 +97,17 @@ export function FilterPills({ filters, onChange, availableCountries, availableTr
       {availableTripTypes.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="mr-1 font-mono text-[11px] uppercase tracking-wide text-slate/60">Trip type</span>
-          <Pill group="tripType" active={filters.tripType === 'All'} onClick={() => onChange({ ...filters, tripType: 'All' })}>
+          <Pill group="tripType" active={filters.tripTypes.length === 0} onClick={() => onChange({ ...filters, tripTypes: [] })}>
             All
           </Pill>
           {availableTripTypes.map((type) => (
-            <Pill key={type} group="tripType" active={filters.tripType === type} onClick={() => onChange({ ...filters, tripType: type })}>
+            <Pill
+              key={type}
+              group="tripType"
+              multi
+              active={filters.tripTypes.includes(type)}
+              onClick={() => onChange({ ...filters, tripTypes: toggleValue(filters.tripTypes, type) })}
+            >
               {type}
             </Pill>
           ))}
@@ -91,11 +117,17 @@ export function FilterPills({ filters, onChange, availableCountries, availableTr
       {availableCountries.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="mr-1 font-mono text-[11px] uppercase tracking-wide text-slate/60">Country</span>
-          <Pill group="country" active={filters.country === 'All'} onClick={() => onChange({ ...filters, country: 'All' })}>
+          <Pill group="country" active={filters.countries.length === 0} onClick={() => onChange({ ...filters, countries: [] })}>
             All
           </Pill>
           {availableCountries.map((country) => (
-            <Pill key={country} group="country" active={filters.country === country} onClick={() => onChange({ ...filters, country })}>
+            <Pill
+              key={country}
+              group="country"
+              multi
+              active={filters.countries.includes(country)}
+              onClick={() => onChange({ ...filters, countries: toggleValue(filters.countries, country) })}
+            >
               {country}
             </Pill>
           ))}

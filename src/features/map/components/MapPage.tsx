@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Compass } from 'lucide-react';
 import type { UseFilteredTrips } from '../../trips/hooks/useFilteredTrips';
 import { FilterPills } from '../../trips/components/FilterPills';
+import { SortControl } from '../../trips/components/SortControl';
 import { TripCard } from '../../trips/components/TripCard';
 import { TravelMap } from './TravelMap';
 
@@ -14,6 +15,8 @@ export function MapPage({
   isError,
   filters,
   setFilters,
+  sort,
+  setSort,
   availableCountries,
   availableTripTypes,
 }: MapPageProps) {
@@ -25,7 +28,7 @@ export function MapPage({
   return (
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-1 border-b border-dashed border-slate/20 pb-5">
-        <h2 className="font-display text-lg font-semibold text-ink-navy">Map</h2>
+        <h2 className="font-display text-lg font-semibold text-ink">Map</h2>
         {!isLoading && !isError && (
           <p className="font-mono text-xs text-slate/60">
             {locatedTrips.length} pinned {locatedTrips.length === 1 ? 'location' : 'locations'}
@@ -39,6 +42,8 @@ export function MapPage({
         availableCountries={availableCountries}
         availableTripTypes={availableTripTypes}
       />
+
+      <SortControl sort={sort} onChange={setSort} />
 
       <TravelMap data={filteredTrips} isLoading={isLoading} isError={isError} filters={filters} height={560} />
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Compass, LayoutGrid, Map as MapIcon, Milestone } from 'lucide-react';
+import { Clock, Compass, LayoutGrid, ListOrdered, Map as MapIcon, Milestone, Moon, Scale, Sun } from 'lucide-react';
+import { useTheme } from './hooks/useTheme';
 import { TripDashboard } from './features/trips/components/TripDashboard';
 import { TravelMap } from './features/map/components/TravelMap';
 import { MapPage } from './features/map/components/MapPage';
@@ -8,9 +9,19 @@ import { TripStats } from './features/stats/components/TripStats';
 import { MilesPage } from './features/stats/components/MilesPage';
 import { TripTimeline } from './features/itinerary/components/TripTimeline';
 import { TimelinePage } from './features/itinerary/components/TimelinePage';
+import { PlanPage } from './features/planning/components/PlanPage';
+import { ComparePage } from './features/compare/components/ComparePage';
+import { TripDetailModal } from './features/trips/components/TripDetails/TripDetailModal';
 import { useFilteredTrips } from './features/trips/hooks/useFilteredTrips';
 
-type Tab = 'dashboard' | 'map' | 'timeline' | 'miles';
+/** Read once at mount: a `?trip=<id>` in the URL means someone opened a shared
+ * link (see TripDetailModal's share-link/URL-sync behavior). */
+function useDeepLinkedTripId(): string | null {
+  const [id] = useState(() => new URLSearchParams(window.location.search).get('trip'));
+  return id;
+}
+
+type Tab = 'dashboard' | 'map' | 'timeline' | 'miles' | 'plan' | 'compare';
 
 function TabButton({
   active,
@@ -30,8 +41,8 @@ function TabButton({
       aria-pressed={active}
       className={`relative flex items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-2 font-mono text-xs uppercase tracking-wide transition-colors duration-150 ${
         active
-          ? 'border-ink-navy text-paper'
-          : 'border-slate/20 bg-white/50 text-slate/70 hover:border-slate/40 hover:bg-white/80'
+          ? 'border-ink-navy text-cream'
+          : 'border-slate/20 bg-surface/50 text-slate/70 hover:border-slate/40 hover:bg-surface/80'
       }`}
     >
       {active && (
@@ -52,10 +63,24 @@ function TabButton({
 export default function App() {
   const filtering = useFilteredTrips();
   const [tab, setTab] = useState<Tab>('dashboard');
+  const { theme, toggleTheme } = useTheme();
+
+  const deepLinkedTripId = useDeepLinkedTripId();
+  const [deepLinkOpen, setDeepLinkOpen] = useState(true);
+  const deepLinkedTrip = deepLinkedTripId ? filtering.trips.find((t) => t.id === deepLinkedTripId) : undefined;
 
   return (
     <div className="min-h-screen bg-paper">
-      <header className="relative overflow-hidden border-b-4 border-brass bg-ink-navy px-6 py-10 text-paper sm:px-10 sm:py-12">
+      <header className="relative overflow-hidden border-b-4 border-brass bg-ink-navy px-6 py-10 text-cream sm:px-10 sm:py-12">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="no-print absolute right-6 top-6 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-cream/20 bg-cream/10 text-cream transition-colors hover:bg-cream/20 sm:right-10 sm:top-8"
+        >
+          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
@@ -93,7 +118,7 @@ export default function App() {
         </motion.h1>
       </header>
 
-      <nav className="mx-auto flex max-w-6xl gap-2 px-6 pt-6 sm:px-10">
+      <nav className="no-print mx-auto flex max-w-6xl flex-wrap gap-2 px-6 pt-6 sm:px-10">
         <TabButton active={tab === 'dashboard'} onClick={() => setTab('dashboard')} icon={<LayoutGrid size={14} />}>
           Dashboard
         </TabButton>
@@ -106,6 +131,12 @@ export default function App() {
         <TabButton active={tab === 'miles'} onClick={() => setTab('miles')} icon={<Milestone size={14} />}>
           Miles Traveled
         </TabButton>
+        <TabButton active={tab === 'plan'} onClick={() => setTab('plan')} icon={<ListOrdered size={14} />}>
+          Plan
+        </TabButton>
+        <TabButton active={tab === 'compare'} onClick={() => setTab('compare')} icon={<Scale size={14} />}>
+          Compare
+        </TabButton>
       </nav>
 
       <main className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-10 sm:px-10">
@@ -117,7 +148,7 @@ export default function App() {
               <TripDashboard {...filtering} />
               <aside className="flex flex-col gap-10">
                 <section>
-                  <h2 className="mb-3 font-display text-lg font-semibold text-ink-navy">Map</h2>
+                  <h2 className="mb-3 font-display text-lg font-semibold text-ink">Map</h2>
                   <TravelMap
                     data={filtering.filteredTrips}
                     isLoading={filtering.isLoading}
@@ -126,7 +157,7 @@ export default function App() {
                   />
                 </section>
                 <section>
-                  <h2 className="mb-3 font-display text-lg font-semibold text-ink-navy">Timeline</h2>
+                  <h2 className="mb-3 font-display text-lg font-semibold text-ink">Timeline</h2>
                   <TripTimeline />
                 </section>
               </aside>
@@ -136,10 +167,18 @@ export default function App() {
           <MapPage {...filtering} />
         ) : tab === 'timeline' ? (
           <TimelinePage {...filtering} />
-        ) : (
+        ) : tab === 'miles' ? (
           <MilesPage />
+        ) : tab === 'plan' ? (
+          <PlanPage />
+        ) : (
+          <ComparePage />
         )}
       </main>
+
+      {deepLinkedTrip && (
+        <TripDetailModal trip={deepLinkedTrip} open={deepLinkOpen} onClose={() => setDeepLinkOpen(false)} />
+      )}
     </div>
   );
 }

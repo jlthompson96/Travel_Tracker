@@ -29,7 +29,7 @@ export type MapRegion = 'World' | 'Europe' | 'North America' | 'South America' |
 export const COUNTRY_OPTIONS = [
   'USA', 'Greece', 'Italy', 'France', 'Spain', 'Japan', 'Mexico', 'Portugal',
   'Thailand', 'Costa Rica', 'Iceland', 'Ireland', 'Germany', 'Hungary',
-  'Bulgaria', 'Ukraine', 'Vatican City', 'New Zealand',
+  'Bulgaria', 'Ukraine', 'Vatican City', 'New Zealand', 'Scotland', 'England',
   'St. Vincent and the Grenadines', 'Australia',
 ] as const;
 export type Country = (typeof COUNTRY_OPTIONS)[number];

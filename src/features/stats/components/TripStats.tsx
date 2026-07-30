@@ -72,12 +72,12 @@ function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.06 }}
       whileHover={{ y: -2 }}
-      className="flex flex-col gap-1 border border-slate/15 bg-white/50 p-4 shadow-sm transition-shadow hover:shadow-md"
+      className="flex flex-col gap-1 border border-slate/15 bg-surface/50 p-4 shadow-sm transition-shadow hover:shadow-md"
     >
       <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60">
         {icon} {label}
       </div>
-      <p className="font-display text-2xl font-semibold text-ink-navy">
+      <p className="font-display text-2xl font-semibold text-ink">
         {typeof value === 'number' ? <CountUp value={value} format={format} /> : value}
       </p>
       {sub && <p className="font-mono text-[11px] text-slate/60">{sub}</p>}

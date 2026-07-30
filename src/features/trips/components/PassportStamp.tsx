@@ -83,7 +83,10 @@ export function PassportStamp({ trip, size = 'md' }: PassportStampProps) {
       animate={{ opacity: 1, scale: 1, rotate: recipe.rotation }}
       whileHover={{ rotate: 0, scale: 1.08 }}
       transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-      className={`${BOX_CLASS[size]} ${inkClass} relative shrink-0 [mix-blend-mode:multiply]`}
+      // multiply sinks the ink into the paper in light mode, but on a dark
+      // surface it darkens the stamp into invisibility — screen is its
+      // inverse and keeps the same "printed on" feel against dark.
+      className={`${BOX_CLASS[size]} ${inkClass} relative shrink-0 [mix-blend-mode:multiply] dark:[mix-blend-mode:screen]`}
       role="img"
       aria-label={`${STATUS_LABEL[status]} stamp: ${trip.destination}`}
     >

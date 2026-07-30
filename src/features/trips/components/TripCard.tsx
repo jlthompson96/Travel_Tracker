@@ -36,13 +36,13 @@ export function TripCard({ trip }: TripCardProps) {
       whileHover={{ y: -4 }}
       whileTap={{ y: -1, scale: 0.99 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      className="bg-perforation group relative flex h-full cursor-pointer flex-col gap-3 border border-slate/15 bg-white/60 p-5 pl-6 shadow-sm transition-shadow duration-200 hover:shadow-lg hover:shadow-ink-navy/10"
+      className="bg-perforation group relative flex h-full cursor-pointer flex-col gap-3 border border-slate/15 bg-surface/60 p-5 pl-6 shadow-sm transition-shadow duration-200 hover:shadow-lg hover:shadow-ink-navy/10"
     >
       <span className="absolute inset-y-0 left-0 w-[3px] scale-y-0 bg-brass transition-transform duration-200 ease-out group-hover:scale-y-100" />
 
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="font-display text-lg font-semibold leading-snug text-ink-navy">
+          <h3 className="font-display text-lg font-semibold leading-snug text-ink">
             {trip.destination}
           </h3>
           {trip.country && (
@@ -57,7 +57,7 @@ export function TripCard({ trip }: TripCardProps) {
           {trip.tripTypes.map((type) => (
             <span
               key={type}
-              className="rounded-full bg-ink-navy/5 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-ink-navy/70"
+              className="rounded-full bg-ink-navy/5 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-ink/70"
             >
               {type}
             </span>
