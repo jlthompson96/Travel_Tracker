@@ -82,7 +82,7 @@ export function MapPage({
                 exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
                 transition={{ duration: 0.35, delay: Math.min(index, 8) * 0.04, ease: 'easeOut' }}
               >
-                <TripCard trip={trip} />
+                <TripCard trips={[trip]} />
               </motion.div>
             ))}
           </AnimatePresence>

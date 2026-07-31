@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CalendarDays, Check, Link as LinkIcon, MapPin, StickyNote, X, ExternalLink } from 'lucide-react';
 import type { Trip } from '../../../../types/travel';
 import { PassportStamp } from '../PassportStamp';
-import { formatDateRange } from '../../utils/formatTrip';
+import { formatDateRange, formatVisitLabel } from '../../utils/formatTrip';
 import TripPictures from './TripPictures';
 import { PhotoLightbox } from './PhotoLightbox';
 import { TripLocationMap } from './TripLocationMap';
@@ -14,6 +14,9 @@ interface TripDetailModalProps {
   trip: Trip;
   open: boolean;
   onClose: () => void;
+  /** All visits to this place. More than one renders a switcher above the body. */
+  visits?: Trip[];
+  onSelectVisit?: (trip: Trip) => void;
 }
 
 const PRIORITY_DOT: Record<string, string> = {
@@ -22,15 +25,15 @@ const PRIORITY_DOT: Record<string, string> = {
   Low: 'bg-slate/40',
 };
 
-export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
+export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: TripDetailModalProps) {
   const [copied, setCopied] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Reset the lightbox whenever the modal itself closes, so reopening a
-  // (possibly different) trip never resumes on a stale photo index.
+  // Reset the lightbox whenever the modal closes or switches to another visit,
+  // so we never resume on a photo index belonging to a different photo set.
   useEffect(() => {
-    if (!open) setLightboxIndex(null);
-  }, [open]);
+    setLightboxIndex(null);
+  }, [open, trip.id]);
 
   // One listener for both layers — Escape closes the lightbox first if it's
   // open, otherwise the modal; arrow keys page through photos. Keeping this
@@ -129,6 +132,33 @@ export function TripDetailModal({ trip, open, onClose }: TripDetailModalProps) {
                 </div>
                 {trip.status && <PassportStamp trip={trip} size="lg" />}
               </div>
+
+              {visits && visits.length > 1 && (
+                <div className="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Visits to this place">
+                  <span className="mr-1 font-mono text-[11px] uppercase tracking-wide text-slate/50">
+                    {visits.length} visits
+                  </span>
+                  {visits.map((visit) => {
+                    const active = visit.id === trip.id;
+                    return (
+                      <button
+                        key={visit.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => onSelectVisit?.(visit)}
+                        className={`rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-wide transition-colors ${
+                          active
+                            ? 'border-ink-navy bg-ink-navy text-cream'
+                            : 'border-slate/20 bg-surface/50 text-slate/70 hover:border-slate/40 hover:bg-surface/80'
+                        }`}
+                      >
+                        {formatVisitLabel(visit)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {trip.tripTypes.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
