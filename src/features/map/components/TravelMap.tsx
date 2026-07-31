@@ -5,33 +5,13 @@ import 'leaflet/dist/leaflet.css';
 import type { UseFilteredTrips } from '../../trips/hooks/useFilteredTrips';
 import type { MapRegion, Trip, TripStatus } from '../../../types/travel';
 import { countryMatchesRegion } from '../../../utils/regions';
+import { groupTripsByLocation } from '../../../utils/groupTrips';
 import { stampIcon } from '../utils/mapIcons';
 import { TripDetailModal } from '../../trips/components/TripDetails/TripDetailModal';
 import { formatDateRange } from '../../trips/utils/formatTrip';
 
 function hasCoordinates(trip: Trip): trip is Trip & { location: NonNullable<Trip['location']> } {
   return trip.location?.latitude != null && trip.location?.longitude != null;
-}
-
-interface LocationGroup {
-  key: string;
-  lat: number;
-  lng: number;
-  trips: Trip[];
-}
-
-/** Rounds to ~111m so trips pinned to "the same place" collapse into one marker
- * even if their Notion Location was picked independently each time. */
-function groupByLocation(trips: Array<Trip & { location: NonNullable<Trip['location']> }>): LocationGroup[] {
-  const groups = new Map<string, LocationGroup>();
-  for (const trip of trips) {
-    const lat = trip.location.latitude!;
-    const lng = trip.location.longitude!;
-    const key = `${lat.toFixed(3)},${lng.toFixed(3)}`;
-    if (!groups.has(key)) groups.set(key, { key, lat, lng, trips: [] });
-    groups.get(key)!.trips.push(trip);
-  }
-  return Array.from(groups.values());
 }
 
 function dominantStatus(trips: Trip[]): TripStatus | null {
@@ -72,7 +52,7 @@ export function TravelMap({ data: trips, isLoading, isError, filters, height = 4
     return true;
   });
 
-  const locationGroups = groupByLocation(located);
+  const locationGroups = groupTripsByLocation(located);
 
   if (isLoading) {
     return <div className="animate-pulse rounded border border-slate/10 bg-slate/5" style={{ height }} />;
@@ -114,7 +94,7 @@ export function TravelMap({ data: trips, isLoading, isError, filters, height = 4
             {locationGroups.map((group) => (
               <Marker
                 key={group.key}
-                position={[group.lat, group.lng]}
+                position={[group.primary.location.latitude!, group.primary.location.longitude!]}
                 icon={stampIcon(dominantStatus(group.trips), group.trips.length)}
               >
                 <Popup>

@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Compass, Printer } from 'lucide-react';
+import { groupTripsByLocation } from '../../../utils/groupTrips';
 import type { UseFilteredTrips } from '../hooks/useFilteredTrips';
 import { SearchBar } from './SearchBar';
 import { FilterPills } from './FilterPills';
@@ -22,6 +24,8 @@ export function TripDashboard({
   availableCountries,
   availableTripTypes,
 }: TripDashboardProps) {
+  const groups = useMemo(() => groupTripsByLocation(filteredTrips), [filteredTrips]);
+
   return (
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-4 border-b border-dashed border-slate/20 pb-5 sm:flex-row sm:items-start sm:justify-between">
@@ -29,7 +33,9 @@ export function TripDashboard({
           <h2 className="font-display text-lg font-semibold text-ink">All Trips</h2>
           {!isLoading && !isError && (
             <p className="mt-0.5 font-mono text-xs text-slate/60">
-              {filteredTrips.length} {filteredTrips.length === 1 ? 'trip' : 'trips'} shown
+              {groups.length < filteredTrips.length
+                ? `${groups.length} ${groups.length === 1 ? 'place' : 'places'} · ${filteredTrips.length} trips`
+                : `${filteredTrips.length} ${filteredTrips.length === 1 ? 'trip' : 'trips'} shown`}
             </p>
           )}
         </div>
@@ -91,16 +97,16 @@ export function TripDashboard({
       {!isLoading && !isError && filteredTrips.length > 0 && (
         <motion.div layout className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence>
-            {filteredTrips.map((trip, index) => (
+            {groups.map((group, index) => (
               <motion.div
-                key={trip.id}
+                key={group.key}
                 layout
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8, transition: { duration: 0.15 } }}
                 transition={{ duration: 0.35, delay: Math.min(index, 8) * 0.04, ease: 'easeOut' }}
               >
-                <TripCard trip={trip} />
+                <TripCard trips={group.trips} />
               </motion.div>
             ))}
           </AnimatePresence>
