@@ -51,8 +51,10 @@ function getAbbreviation(destination: string, country: Country | null): string |
   return COUNTRY_CODES[country] ?? null;
 }
 
-/** djb2 string hash — deterministic, so the same trip always renders the same stamp. */
-function hashString(input: string): number {
+/** djb2 string hash — deterministic, so the same trip always renders the same stamp.
+ * Exported so anything else that needs stable per-trip jitter (e.g. the passport
+ * book's stamp scatter) derives it the same way instead of rolling its own. */
+export function hashString(input: string): number {
   let hash = 5381;
   for (let i = 0; i < input.length; i++) {
     hash = (hash * 33) ^ input.charCodeAt(i);

@@ -101,4 +101,86 @@
   li {
     break-inside: avoid;
   }
+
+  /* The passport's flat print DOM (see PassportPrintSheets.tsx). Declared after
+   * the [aria-hidden] rule above so its own aria-hidden decorations — page
+   * numbers, gutter shading, the chevron strip — survive into print; only the
+   * bits explicitly marked .no-print drop out. */
+  .print-only {
+    display: block !important;
+  }
+
+  .passport-sheet {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Letter landscape less 0.45in margins leaves 7.6in; stay under it so
+     * rounding can't spill a sheet onto a blank second page. */
+    height: 7.4in;
+    break-after: page;
+    break-inside: avoid;
+    /* Without this Chrome drops every background, and the navy cover prints as
+     * an empty rectangle. */
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .passport-sheet:last-child {
+    break-after: auto;
+  }
+
+  /* Covers stand alone rather than facing a blank half-sheet. */
+  .passport-sheet--single {
+    grid-template-columns: minmax(0, 0.5fr);
+    justify-content: center;
+  }
+
+  .passport-sheet__page {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Stands in for the gutter shading, which is screen-only: a fold line reads
+   * as a spread without laying grey ink over either page. */
+  .passport-sheet:not(.passport-sheet--single) .passport-sheet__page:first-child {
+    border-right: 1px dashed rgb(var(--color-slate) / 0.25);
+  }
+
+  .passport-sheet [aria-hidden='true']:not(.no-print) {
+    display: revert !important;
+  }
+
+  /* Two fixes on the stamps, both mattering only on paper:
+   *
+   * mix-blend-mode forces Chrome to flatten the whole page face into a single
+   * ~73dpi bitmap, which prints visibly soft. On white paper multiply is a
+   * no-op anyway, so dropping it costs nothing and keeps the stamps — and the
+   * text around them — as vectors.
+   *
+   * The opacity is belt and braces: PassportStamp animates in from 0, and these
+   * sheets are display:none until this stylesheet applies. */
+  .passport-sheet [role='img'] {
+    mix-blend-mode: normal !important;
+    opacity: 1 !important;
+  }
+}
+
+/* The flat sheets exist only for paper — the interactive book is the screen
+ * version of the same pages. */
+.print-only {
+  display: none;
+}
+
+/* Page orientation can't be selector-scoped (@page takes no class), so the
+ * landscape rule is injected and removed around the Passport tab's own print
+ * call — see PassportPage.tsx. Everything that *can* be scoped lives here. */
+@media print {
+  html.printing-passport header {
+    display: none !important;
+  }
+
+  /* The app shell paints itself 'paper' cream, which shows as a band under each
+   * sheet. Sheets carry their own backgrounds, so the shell should be white. */
+  html.printing-passport #root > div {
+    background: white !important;
+  }
 }

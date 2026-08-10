@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Compass, LayoutGrid, ListOrdered, Map as MapIcon, Milestone, Moon, Scale, Sun } from 'lucide-react';
+import { BookOpen, Clock, Compass, LayoutGrid, ListOrdered, Map as MapIcon, Milestone, Moon, Scale, Sun } from 'lucide-react';
 import { useTheme } from './hooks/useTheme';
 import { TripDashboard } from './features/trips/components/TripDashboard';
 import { TravelMap } from './features/map/components/TravelMap';
@@ -9,6 +9,7 @@ import { TripStats } from './features/stats/components/TripStats';
 import { MilesPage } from './features/stats/components/MilesPage';
 import { TripTimeline } from './features/itinerary/components/TripTimeline';
 import { TimelinePage } from './features/itinerary/components/TimelinePage';
+import { PassportPage } from './features/passport/components/PassportPage';
 import { PlanPage } from './features/planning/components/PlanPage';
 import { ComparePage } from './features/compare/components/ComparePage';
 import { TripDetailModal } from './features/trips/components/TripDetails/TripDetailModal';
@@ -21,7 +22,7 @@ function useDeepLinkedTripId(): string | null {
   return id;
 }
 
-type Tab = 'dashboard' | 'map' | 'timeline' | 'miles' | 'plan' | 'compare';
+type Tab = 'dashboard' | 'map' | 'timeline' | 'passport' | 'miles' | 'plan' | 'compare';
 
 function TabButton({
   active,
@@ -128,6 +129,9 @@ export default function App() {
         <TabButton active={tab === 'timeline'} onClick={() => setTab('timeline')} icon={<Clock size={14} />}>
           Timeline
         </TabButton>
+        <TabButton active={tab === 'passport'} onClick={() => setTab('passport')} icon={<BookOpen size={14} />}>
+          Passport
+        </TabButton>
         <TabButton active={tab === 'miles'} onClick={() => setTab('miles')} icon={<Milestone size={14} />}>
           Miles Traveled
         </TabButton>
@@ -167,6 +171,8 @@ export default function App() {
           <MapPage {...filtering} />
         ) : tab === 'timeline' ? (
           <TimelinePage {...filtering} />
+        ) : tab === 'passport' ? (
+          <PassportPage />
         ) : tab === 'miles' ? (
           <MilesPage />
         ) : tab === 'plan' ? (
