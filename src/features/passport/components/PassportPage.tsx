@@ -80,7 +80,7 @@ export function PassportPage() {
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">Passport</h2>
           {!isLoading && !isError && (
-            <p className="mt-0.5 font-mono text-xs text-slate/60">
+            <p className="mt-0.5 font-mono text-xs text-slate/60 max-sm:text-slate/80">
               {stats.totalBeenThere} {stats.totalBeenThere === 1 ? 'stamp' : 'stamps'} across{' '}
               {stats.countriesVisited} {stats.countriesVisited === 1 ? 'country' : 'countries'} · click the cover to
               open, then swipe or use the arrow keys
@@ -93,7 +93,7 @@ export function PassportPage() {
           disabled={isLoading || isError}
           aria-label="Print the passport"
           title="Print the passport — or Save as PDF from the print dialog"
-          className="no-print flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate/20 bg-surface/50 text-slate/70 transition-colors hover:border-slate/40 hover:bg-surface/80 disabled:cursor-not-allowed disabled:opacity-35"
+          className="no-print flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate/20 bg-surface/50 text-slate/70 transition-colors hover:border-slate/40 hover:bg-surface/80 disabled:cursor-not-allowed disabled:opacity-35 max-sm:h-11 max-sm:w-11"
         >
           <Printer size={15} />
         </button>

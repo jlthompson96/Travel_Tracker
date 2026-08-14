@@ -56,7 +56,26 @@ export function useBucketListPlan(tripIds: string[]) {
     setTimeframes((prev) => ({ ...prev, [tripId]: timeframe }));
   }, []);
 
-  return { orderedIds, timeframes, reorder, setTimeframe };
+  /**
+   * Nudges one entry up or down by `delta` places.
+   *
+   * Drag is the nicer gesture but it is the only way to reorder today, and it
+   * is unusable from a keyboard and awkward on touch (the grip is the sole drag
+   * surface). This gives both a plain-button path to the same result.
+   */
+  const move = useCallback(
+    (tripId: string, delta: number) => {
+      const from = orderedIds.indexOf(tripId);
+      const to = from + delta;
+      if (from < 0 || to < 0 || to >= orderedIds.length) return;
+      const next = [...orderedIds];
+      [next[from], next[to]] = [next[to], next[from]];
+      setSavedOrder(next);
+    },
+    [orderedIds],
+  );
+
+  return { orderedIds, timeframes, reorder, setTimeframe, move };
 }
 
 function mergeOrder(saved: string[], current: string[]): string[] {

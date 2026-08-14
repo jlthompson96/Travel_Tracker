@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { motion, useReducedMotion, type PanInfo, type Transition } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { PassportLeaf } from './PassportLeaf';
+import { useIsMobile } from '../../../hooks/useMediaQuery';
 import type { PassportPage } from '../utils/buildPassportPages';
 
 interface Leaf {
@@ -19,18 +20,7 @@ const SWIPE_VELOCITY = 400;
 
 /** Tailwind's `sm` — below it the book drops to one page at a time. */
 function useIsSpread(): boolean {
-  const [isSpread, setIsSpread] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 640px)').matches,
-  );
-
-  useEffect(() => {
-    const query = window.matchMedia('(min-width: 640px)');
-    const onChange = (e: MediaQueryListEvent) => setIsSpread(e.matches);
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, []);
-
-  return isSpread;
+  return !useIsMobile();
 }
 
 export function PassportBook({ pages }: { pages: PassportPage[] }) {
@@ -142,7 +132,7 @@ export function PassportBook({ pages }: { pages: PassportPage[] }) {
           Prev
         </NavButton>
 
-        <span className="font-mono text-[11px] uppercase tracking-wide text-slate/50" aria-live="polite">
+        <span className="font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80" aria-live="polite">
           {isClosed ? 'Cover' : `${turned} / ${leaves.length}`}
         </span>
 
@@ -172,7 +162,7 @@ function NavButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={label}
-      className="flex items-center gap-1.5 rounded-full border border-slate/20 bg-surface/50 px-4 py-2 font-mono text-xs uppercase tracking-wide text-slate/70 transition-colors duration-150 hover:border-slate/40 hover:bg-surface/80 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-slate/20 disabled:hover:bg-surface/50"
+      className="flex items-center gap-1.5 rounded-full border border-slate/20 bg-surface/50 px-4 py-2 font-mono text-xs uppercase tracking-wide text-slate/70 max-sm:min-h-touch max-sm:px-5 transition-colors duration-150 hover:border-slate/40 hover:bg-surface/80 disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-slate/20 disabled:hover:bg-surface/50"
     >
       {children}
     </button>

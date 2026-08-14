@@ -55,7 +55,11 @@ export function TripCard({ trips }: TripCardProps) {
 
   return (
     <>
-    <motion.article
+    {/* A div, not an <article>: ARIA does not permit role="button" on
+        <article>, and the card's whole job is to be a button. data-trip-card
+        keeps the print `break-inside: avoid` rule applying (see index.css). */}
+    <motion.div
+      data-trip-card
       role="button"
       tabIndex={0}
       aria-haspopup="dialog"
@@ -81,7 +85,7 @@ export function TripCard({ trips }: TripCardProps) {
           <div className="mt-0.5 flex flex-wrap items-center gap-2">
             {primary.country && <p className="text-sm text-slate/70">{primary.country}</p>}
             {trips.length > 1 && (
-              <span className="rounded-full bg-brass/15 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-brass">
+              <span className="rounded-full bg-brass/15 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-brass max-sm:text-brass-text">
                 {trips.length} visits
               </span>
             )}
@@ -95,7 +99,7 @@ export function TripCard({ trips }: TripCardProps) {
           {tripTypes.map((type) => (
             <span
               key={type}
-              className="rounded-full bg-ink-navy/5 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-ink/70"
+              className="rounded-full bg-ink-navy/5 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-ink/70 max-sm:text-ink"
             >
               {type}
             </span>
@@ -111,7 +115,7 @@ export function TripCard({ trips }: TripCardProps) {
           </div>
         ))}
         {dateLabels.length > MAX_VISIBLE_DATES && (
-          <span className="pl-[19px] text-slate/60">
+          <span className="pl-[19px] text-slate/60 max-sm:text-slate/80">
             +{dateLabels.length - MAX_VISIBLE_DATES} more
           </span>
         )}
@@ -125,7 +129,7 @@ export function TripCard({ trips }: TripCardProps) {
 
       {primary.notes && (
         <p className="flex gap-1.5 border-t border-slate/10 pt-2.5 text-sm text-slate/80">
-          <StickyNote size={14} className="mt-0.5 shrink-0 text-slate/40" />
+          <StickyNote size={14} className="mt-0.5 shrink-0 text-slate/40 max-sm:text-slate/80" />
           <span className="line-clamp-2">{primary.notes}</span>
         </p>
       )}
@@ -134,17 +138,17 @@ export function TripCard({ trips }: TripCardProps) {
         <div className="flex" aria-label={ratingLabel}>
           {bestRating &&
             Array.from({ length: bestRating }).map((_, i) => (
-              <span key={i} className="text-brass">★</span>
+              <span key={i} className="text-brass max-sm:text-brass-text">★</span>
             ))}
         </div>
         {primary.priority && (
-          <span className="flex items-center gap-1 text-[11px] font-mono uppercase tracking-wide text-slate/60">
+          <span className="flex items-center gap-1 text-[11px] font-mono uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
             <span className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT[primary.priority]}`} />
             {primary.priority}
           </span>
         )}
       </div>
-    </motion.article>
+    </motion.div>
     <TripDetailModal
       trip={activeTrip}
       visits={trips}

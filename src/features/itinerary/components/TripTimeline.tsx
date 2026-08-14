@@ -36,7 +36,7 @@ export function TripTimeline() {
 
   if (sorted.length === 0) {
     return (
-      <div className="border border-dashed border-slate/20 p-6 text-center text-sm text-slate/50">
+      <div className="border border-dashed border-slate/20 p-6 text-center text-sm text-slate/50 max-sm:text-slate/80">
         No trips with a Date Visited yet — add one in Notion to see it here.
       </div>
     );
@@ -60,12 +60,12 @@ export function TripTimeline() {
             transition={{ type: 'spring', stiffness: 400, damping: 20, delay: Math.min(index, 6) * 0.05 }}
             className="absolute -left-[29px] top-1 h-3 w-3 rounded-full border-2 border-paper bg-brass"
           />
-          <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60">
+          <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
             {formatRange(trip)}
           </p>
           <p className="font-display text-base font-semibold text-ink">{trip.destination}</p>
           {trip.dateVisited?.nights != null && (
-            <p className="text-xs text-slate/60">{trip.dateVisited.nights} nights</p>
+            <p className="text-xs text-slate/60 max-sm:text-slate/80">{trip.dateVisited.nights} nights</p>
           )}
         </motion.li>
       ))}

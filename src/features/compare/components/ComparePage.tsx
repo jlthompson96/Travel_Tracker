@@ -51,7 +51,7 @@ export function ComparePage() {
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-1 border-b border-dashed border-slate/20 pb-5">
         <h2 className="font-display text-lg font-semibold text-ink">Compare</h2>
-        <p className="font-mono text-xs text-slate/60">Pick up to {MAX_TRIPS} trips to see them side by side</p>
+        <p className="font-mono text-xs text-slate/60 max-sm:text-slate/80">Pick up to {MAX_TRIPS} trips to see them side by side</p>
       </div>
 
       <div className="flex flex-col gap-3">
@@ -60,10 +60,17 @@ export function ComparePage() {
             {selected.map((trip) => (
               <span
                 key={trip.id}
-                className="flex items-center gap-1.5 rounded-full border border-ink-navy bg-ink-navy px-3 py-1.5 font-mono text-xs uppercase tracking-wide text-cream"
+                className="flex items-center gap-1.5 rounded-full border border-ink-navy bg-ink-navy px-3 py-1.5 font-mono text-xs uppercase tracking-wide text-cream max-sm:min-h-touch"
               >
                 {trip.destination}
-                <button type="button" onClick={() => removeTrip(trip.id)} aria-label={`Remove ${trip.destination}`}>
+                {/* Negative margin cancels the padding, so the hit area grows
+                  * without the glyph shifting or the chip getting taller. */}
+                <button
+                  type="button"
+                  onClick={() => removeTrip(trip.id)}
+                  aria-label={`Remove ${trip.destination}`}
+                  className="max-sm:-m-2 max-sm:p-2"
+                >
                   <X size={13} />
                 </button>
               </span>
@@ -73,13 +80,14 @@ export function ComparePage() {
 
         {selected.length < MAX_TRIPS && (
           <div className="relative w-full max-w-sm">
-            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate/40" />
+            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate/40 max-sm:text-slate/80" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search a destination to add…"
-              className="w-full rounded-full border border-slate/20 bg-surface/60 py-2 pl-9 pr-4 text-sm text-slate placeholder:text-slate/40 focus:border-brass"
+              // 16px on phones — anything smaller makes Safari zoom the page on focus.
+              className="w-full rounded-full border border-slate/20 bg-surface/60 py-2 pl-9 pr-4 text-sm text-slate placeholder:text-slate/40 focus:border-brass max-sm:py-2.5 max-sm:text-base"
             />
             {results.length > 0 && (
               <div className="absolute z-10 mt-1 w-full overflow-hidden rounded border border-slate/15 bg-paper shadow-lg">
@@ -91,7 +99,7 @@ export function ComparePage() {
                     className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-ink-navy/5"
                   >
                     <span>{trip.destination}</span>
-                    {trip.country && <span className="text-xs text-slate/50">{trip.country}</span>}
+                    {trip.country && <span className="text-xs text-slate/50 max-sm:text-slate/80">{trip.country}</span>}
                   </button>
                 ))}
               </div>
@@ -107,7 +115,7 @@ export function ComparePage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50"
+            className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50 max-sm:text-slate/80"
           >
             <p className="font-display text-lg text-slate/70">Search above to start comparing</p>
             <p className="text-sm">Good for weighing two or three Bucket List candidates against each other.</p>
@@ -134,7 +142,7 @@ const ROWS: ComparisonRow[] = [
       trip.tripTypes.length > 0 ? (
         <div className="flex flex-wrap gap-1">
           {trip.tripTypes.map((type) => (
-            <span key={type} className="rounded-full bg-ink-navy/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink/70">
+            <span key={type} className="rounded-full bg-ink-navy/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink/70 max-sm:text-ink">
               {type}
             </span>
           ))}
@@ -165,10 +173,19 @@ function ComparisonGrid({ trips }: { trips: Trip[] }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="overflow-x-auto"
+      // overscroll-x-contain stops a swipe that runs off the end of this
+      // scroller from chaining into Safari's back-navigation gesture.
+      className="overflow-x-auto overscroll-x-contain"
+      data-allow-x-scroll
     >
-      <div className="grid min-w-[560px] gap-px overflow-hidden rounded border border-slate/15 bg-slate/15" style={gridStyle(trips.length)}>
-        <div className="bg-paper p-3" />
+      <div
+        // overflow-hidden (for the rounded corners) sits between the sticky
+        // label cells and the scroll container, which would kill sticky — so
+        // phones trade the corner clipping for readable row labels.
+        className="grid min-w-[560px] gap-px overflow-hidden rounded border border-slate/15 bg-slate/15 max-sm:min-w-[440px] max-sm:overflow-visible max-sm:[--compare-label-w:96px]"
+        style={gridStyle(trips.length)}
+      >
+        <div className="bg-paper p-3 max-sm:sticky max-sm:left-0 max-sm:z-10" />
         {trips.map((trip) => (
           <div key={trip.id} className="flex flex-col items-center gap-2 bg-surface/70 p-4 text-center">
             <PassportStamp trip={trip} size="sm" />
@@ -195,7 +212,9 @@ function RowCells({
 }) {
   return (
     <>
-      <div className="bg-paper p-3 font-mono text-[11px] uppercase tracking-wide text-slate/50">{row.label}</div>
+      <div className="bg-paper p-3 font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:sticky max-sm:left-0 max-sm:z-10 max-sm:text-slate/80">
+        {row.label}
+      </div>
       {trips.map((trip) => (
         <div key={trip.id} className="bg-surface/70 p-3 text-center text-sm text-ink">
           {row.render(trip, distanceFor(trip))}
@@ -206,5 +225,7 @@ function RowCells({
 }
 
 function gridStyle(count: number): React.CSSProperties {
-  return { gridTemplateColumns: `140px repeat(${count}, 1fr)` };
+  // The label column narrows on phones via --compare-label-w; 140px stays the
+  // default everywhere it isn't overridden.
+  return { gridTemplateColumns: `var(--compare-label-w, 140px) repeat(${count}, 1fr)` };
 }

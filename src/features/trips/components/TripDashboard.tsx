@@ -32,7 +32,7 @@ export function TripDashboard({
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">All Trips</h2>
           {!isLoading && !isError && (
-            <p className="mt-0.5 font-mono text-xs text-slate/60">
+            <p className="mt-0.5 font-mono text-xs text-slate/60 max-sm:text-slate/80">
               {groups.length < filteredTrips.length
                 ? `${groups.length} ${groups.length === 1 ? 'place' : 'places'} · ${filteredTrips.length} trips`
                 : `${filteredTrips.length} ${filteredTrips.length === 1 ? 'trip' : 'trips'} shown`}
@@ -46,7 +46,7 @@ export function TripDashboard({
             onClick={() => window.print()}
             aria-label="Print this trip list"
             title="Print this trip list"
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate/20 bg-surface/50 text-slate/70 transition-colors hover:border-slate/40 hover:bg-surface/80"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate/20 bg-surface/50 text-slate/70 transition-colors hover:border-slate/40 hover:bg-surface/80 max-sm:h-11 max-sm:w-11"
           >
             <Printer size={15} />
           </button>
@@ -80,7 +80,7 @@ export function TripDashboard({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
-            className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50"
+            className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50 max-sm:text-slate/80"
           >
             <motion.div
               animate={{ rotate: [0, -12, 12, -8, 0] }}

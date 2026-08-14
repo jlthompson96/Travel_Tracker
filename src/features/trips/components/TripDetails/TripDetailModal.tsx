@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { useIsMobile } from '../../../../hooks/useMediaQuery';
+import { useBodyScrollLock } from '../../../../hooks/useBodyScrollLock';
+import { useFocusTrap } from '../../../../hooks/useFocusTrap';
 import { CalendarDays, Check, Link as LinkIcon, MapPin, StickyNote, X, ExternalLink } from 'lucide-react';
 import type { Trip } from '../../../../types/travel';
 import { PassportStamp } from '../PassportStamp';
@@ -28,6 +31,14 @@ const PRIORITY_DOT: Record<string, string> = {
 export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: TripDetailModalProps) {
   const [copied, setCopied] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+  const reduceMotion = useReducedMotion();
+
+  useBodyScrollLock(open);
+  // The lightbox layers on top and traps focus itself; two live traps would
+  // fight over Tab.
+  useFocusTrap(panelRef, open && lightboxIndex == null);
 
   // Reset the lightbox whenever the modal closes or switches to another visit,
   // so we never resume on a photo index belonging to a different photo set.
@@ -51,13 +62,7 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
       }
     };
     document.addEventListener('keydown', onKeyDown);
-    const { overflow } = document.body.style;
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = overflow;
-    };
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, onClose, lightboxIndex, trip.photos.length]);
 
   // Keeps the address bar a shareable/bookmarkable link to whichever trip is
@@ -96,7 +101,7 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
           role="dialog"
           aria-modal="true"
           aria-label={trip.destination}
-          className="fixed inset-0 z-[2000] flex items-center justify-center bg-ink-navy/70 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-modal flex items-center justify-center bg-ink-navy/70 p-4 backdrop-blur-sm max-sm:items-end max-sm:p-0"
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -104,38 +109,59 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
           transition={{ duration: 0.2 }}
         >
           <motion.div
+            ref={panelRef}
             onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, y: 24, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12, scale: 0.98, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 320, damping: 30 }}
-            className="relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden border border-slate/15 bg-paper shadow-2xl"
+            // Drag-to-dismiss is a phone affordance and a motion effect, so it
+            // is off on desktop and off under reduced motion — the close button
+            // remains the way out in both cases.
+            drag={isMobile && !reduceMotion ? 'y' : false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.4 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 100 || info.velocity.y > 500) onClose();
+            }}
+            // 92svh, not vh: svh measures the viewport with Safari's toolbars
+            // showing, so the bottom action row can't end up behind them.
+            className="relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden border border-slate/15 bg-paper shadow-2xl max-sm:max-h-[92svh] max-sm:rounded-t-2xl max-sm:border-x-0 max-sm:border-b-0"
           >
-            <div className="h-2 shrink-0 bg-brass" />
+            {/* Doubles as the sheet's drag handle on phones. */}
+            <div className="flex h-2 shrink-0 items-center justify-center bg-brass max-sm:h-6">
+              <span aria-hidden className="hidden h-1 w-9 rounded-full bg-ink-navy/30 max-sm:block" />
+            </div>
 
             <button
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute right-3 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-ink-navy/5 text-ink/70 transition hover:bg-ink-navy/10 hover:text-ink"
+              className="absolute right-3 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-ink-navy/5 text-ink/70 transition hover:bg-ink-navy/10 hover:text-ink max-sm:right-2 max-sm:top-8 max-sm:h-11 max-sm:w-11"
             >
               <X size={18} />
             </button>
 
-            <div className="flex flex-col gap-5 overflow-y-auto p-6 sm:p-8">
-              <div className="flex items-start justify-between gap-3 pr-10">
+            <div className="flex flex-col gap-5 overflow-y-auto overscroll-contain p-6 max-sm:p-5 sm:p-8">
+              {/* Sticky on phones so the destination stays visible while the
+                * photos, map and weather chart scroll underneath the glass.
+                * The negative margins let it span the scroller's full width and
+                * cover its top padding; `glass` brings the tint and border. */}
+              <div className="flex items-start justify-between gap-3 pr-10 max-sm:glass max-sm:sticky max-sm:top-0 max-sm:z-10 max-sm:-mx-5 max-sm:-mt-5 max-sm:items-center max-sm:border-b max-sm:px-5 max-sm:pb-3 max-sm:pt-4">
                 <div>
                   <h2 className="font-display text-2xl font-semibold leading-snug text-ink sm:text-3xl">
                     {trip.destination}
                   </h2>
                   {trip.country && <p className="mt-1 text-sm text-slate/70">{trip.country}</p>}
                 </div>
-                {trip.status && <PassportStamp trip={trip} size="lg" />}
+                {/* A 144px stamp would make the sticky header eat a fifth of the
+                  * screen; the small variant keeps the flourish without the cost. */}
+                {trip.status && <PassportStamp trip={trip} size={isMobile ? 'sm' : 'lg'} />}
               </div>
 
               {visits && visits.length > 1 && (
                 <div className="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Visits to this place">
-                  <span className="mr-1 font-mono text-[11px] uppercase tracking-wide text-slate/50">
+                  <span className="mr-1 font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">
                     {visits.length} visits
                   </span>
                   {visits.map((visit) => {
@@ -147,7 +173,7 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
                         role="tab"
                         aria-selected={active}
                         onClick={() => onSelectVisit?.(visit)}
-                        className={`rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-wide transition-colors ${
+                        className={`rounded-full border px-3 py-1 font-mono text-[11px] uppercase tracking-wide transition-colors max-sm:inline-flex max-sm:min-h-touch max-sm:items-center max-sm:px-4 ${
                           active
                             ? 'border-ink-navy bg-ink-navy text-cream'
                             : 'border-slate/20 bg-surface/50 text-slate/70 hover:border-slate/40 hover:bg-surface/80'
@@ -165,7 +191,7 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
                   {trip.tripTypes.map((type) => (
                     <span
                       key={type}
-                      className="rounded-full bg-ink-navy/5 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-ink/70"
+                      className="rounded-full bg-ink-navy/5 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-ink/70 max-sm:text-ink"
                     >
                       {type}
                     </span>
@@ -196,7 +222,7 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
 
               {trip.notes && (
                 <p className="flex gap-2 text-sm leading-relaxed text-slate/80">
-                  <StickyNote size={16} className="mt-0.5 shrink-0 text-slate/40" />
+                  <StickyNote size={16} className="mt-0.5 shrink-0 text-slate/40 max-sm:text-slate/80" />
                   <span>{trip.notes}</span>
                 </p>
               )}
@@ -206,22 +232,22 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
                   <div aria-label={trip.ratingStars ? `${trip.ratingStars} of 5 stars` : 'Not rated'}>
                     {trip.ratingStars &&
                       Array.from({ length: trip.ratingStars }).map((_, i) => (
-                        <span key={i} className="text-brass">★</span>
+                        <span key={i} className="text-brass max-sm:text-brass-text">★</span>
                       ))}
                   </div>
                   {trip.priority && (
-                    <span className="flex items-center gap-1 text-[11px] font-mono uppercase tracking-wide text-slate/60">
+                    <span className="flex items-center gap-1 text-[11px] font-mono uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
                       <span className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT[trip.priority]}`} />
                       {trip.priority}
                     </span>
                   )}
                 </div>
 
-                <div className="no-print flex items-center gap-4">
+                <div className="no-print flex items-center gap-4 max-sm:gap-1">
                   <button
                     type="button"
                     onClick={copyShareLink}
-                    className="flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-slate/60 hover:text-ink"
+                    className="flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-slate/60 hover:text-ink max-sm:min-h-touch max-sm:px-2 max-sm:text-slate/80"
                   >
                     {copied ? <Check size={12} className="text-horizon-teal" /> : <LinkIcon size={12} />}
                     {copied ? 'Copied' : 'Copy link'}
@@ -231,7 +257,7 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
                     href={trip.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-horizon-teal hover:underline"
+                    className="flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-horizon-teal hover:underline max-sm:min-h-touch max-sm:px-2"
                   >
                     View in Notion
                     <ExternalLink size={12} />

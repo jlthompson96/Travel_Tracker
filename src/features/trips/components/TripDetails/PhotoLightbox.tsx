@@ -1,6 +1,8 @@
+import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useFocusTrap } from '../../../../hooks/useFocusTrap';
 import type { TripPhoto } from '../../../../types/travel';
 
 interface PhotoLightboxProps {
@@ -14,7 +16,10 @@ interface PhotoLightboxProps {
  * keydown listener (see its `lightboxIndex` state) so the two layers never
  * fight over which one an Escape press should close. */
 export function PhotoLightbox({ photos, index, onClose, onNavigate }: PhotoLightboxProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const photo = photos[index];
+  useFocusTrap(containerRef, !!photo);
+
   if (!photo) return null;
 
   const hasMultiple = photos.length > 1;
@@ -22,10 +27,11 @@ export function PhotoLightbox({ photos, index, onClose, onNavigate }: PhotoLight
   return createPortal(
     <AnimatePresence>
       <motion.div
+        ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-label={photo.name || 'Photo'}
-        className="fixed inset-0 z-[2100] flex items-center justify-center bg-black/85 p-4"
+        className="fixed inset-0 z-lightbox flex items-center justify-center bg-black/85 p-4"
         onClick={onClose}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -36,7 +42,7 @@ export function PhotoLightbox({ photos, index, onClose, onNavigate }: PhotoLight
           type="button"
           onClick={onClose}
           aria-label="Close photo"
-          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 max-sm:h-11 max-sm:w-11"
         >
           <X size={20} />
         </button>

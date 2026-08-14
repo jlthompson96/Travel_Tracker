@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BookOpen, Clock, Compass, LayoutGrid, ListOrdered, Map as MapIcon, Milestone, Moon, Scale, Sun } from 'lucide-react';
+import { Compass, Droplet, Moon, Sun } from 'lucide-react';
 import { useTheme } from './hooks/useTheme';
+import { useReduceTransparency } from './hooks/useReduceTransparency';
+import { useMediaQuery } from './hooks/useMediaQuery';
+import { BottomTabBar } from './components/BottomTabBar';
+import { TABS, type Tab } from './navigation/tabs';
 import { TripDashboard } from './features/trips/components/TripDashboard';
 import { TravelMap } from './features/map/components/TravelMap';
 import { MapPage } from './features/map/components/MapPage';
@@ -21,8 +25,6 @@ function useDeepLinkedTripId(): string | null {
   const [id] = useState(() => new URLSearchParams(window.location.search).get('trip'));
   return id;
 }
-
-type Tab = 'dashboard' | 'map' | 'timeline' | 'passport' | 'miles' | 'plan' | 'compare';
 
 function TabButton({
   active,
@@ -65,22 +67,42 @@ export default function App() {
   const filtering = useFilteredTrips();
   const [tab, setTab] = useState<Tab>('dashboard');
   const { theme, toggleTheme } = useTheme();
+  const { reduced, toggleReduced } = useReduceTransparency();
+  const isDesktop = useMediaQuery('(min-width: 640px)');
 
   const deepLinkedTripId = useDeepLinkedTripId();
   const [deepLinkOpen, setDeepLinkOpen] = useState(true);
   const deepLinkedTrip = deepLinkedTripId ? filtering.trips.find((t) => t.id === deepLinkedTripId) : undefined;
 
   return (
-    <div className="min-h-screen bg-paper">
-      <header className="relative overflow-hidden border-b-4 border-brass bg-ink-navy px-6 py-10 text-cream sm:px-10 sm:py-12">
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="no-print absolute right-6 top-6 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-cream/20 bg-cream/10 text-cream transition-colors hover:bg-cream/20 sm:right-10 sm:top-8"
-        >
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
+    <div className="min-h-screen bg-paper max-sm:min-h-dvh">
+      <header className="px-edge relative overflow-hidden border-b-4 border-brass bg-ink-navy py-10 text-cream max-sm:py-6 sm:py-12">
+        {/* The theme toggle is last in the row and the row is right-anchored, so
+          * with the transparency button hidden on desktop it lands on exactly
+          * the same pixel it always has. */}
+        <div className="no-print absolute right-6 top-6 z-10 flex items-center gap-2 max-sm:right-4 max-sm:top-4 sm:right-10 sm:top-8">
+          {/* Glass only exists on phones, so this control does too. It is the
+            * only way to turn the effect off on iOS 17, where the OS-level
+            * prefers-reduced-transparency query does not exist. */}
+          <button
+            type="button"
+            onClick={toggleReduced}
+            aria-pressed={reduced}
+            aria-label={reduced ? 'Turn translucency back on' : 'Reduce translucency'}
+            className="hidden h-11 w-11 items-center justify-center rounded-full border border-cream/20 bg-cream/10 text-cream transition-colors hover:bg-cream/20 max-sm:flex"
+          >
+            <Droplet size={16} className={reduced ? 'opacity-40' : undefined} />
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-cream/20 bg-cream/10 text-cream transition-colors hover:bg-cream/20 max-sm:h-11 max-sm:w-11"
+          >
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+        </div>
 
         <div
           aria-hidden
@@ -113,37 +135,30 @@ export default function App() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.08 }}
-          className="relative mt-1 max-w-xl font-display text-3xl font-semibold leading-tight sm:text-4xl"
+          className="relative mt-1 max-w-xl font-display text-3xl font-semibold leading-tight max-sm:text-2xl sm:text-4xl"
         >
           Joey and Sarah's Travel Tracker
         </motion.h1>
       </header>
 
-      <nav className="no-print mx-auto flex max-w-6xl flex-wrap gap-2 px-6 pt-6 sm:px-10">
-        <TabButton active={tab === 'dashboard'} onClick={() => setTab('dashboard')} icon={<LayoutGrid size={14} />}>
-          Dashboard
-        </TabButton>
-        <TabButton active={tab === 'map'} onClick={() => setTab('map')} icon={<MapIcon size={14} />}>
-          Map
-        </TabButton>
-        <TabButton active={tab === 'timeline'} onClick={() => setTab('timeline')} icon={<Clock size={14} />}>
-          Timeline
-        </TabButton>
-        <TabButton active={tab === 'passport'} onClick={() => setTab('passport')} icon={<BookOpen size={14} />}>
-          Passport
-        </TabButton>
-        <TabButton active={tab === 'miles'} onClick={() => setTab('miles')} icon={<Milestone size={14} />}>
-          Miles Traveled
-        </TabButton>
-        <TabButton active={tab === 'plan'} onClick={() => setTab('plan')} icon={<ListOrdered size={14} />}>
-          Plan
-        </TabButton>
-        <TabButton active={tab === 'compare'} onClick={() => setTab('compare')} icon={<Scale size={14} />}>
-          Compare
-        </TabButton>
-      </nav>
+      {/* One nav or the other, never both — rendering both and hiding one with
+        * `sm:hidden` would duplicate the nav landmark and every tab button in
+        * the accessibility tree, and would register `layoutId` twice. */}
+      {isDesktop ? (
+        <nav className="px-edge no-print mx-auto flex max-w-6xl flex-wrap gap-2 pt-6">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <TabButton key={id} active={tab === id} onClick={() => setTab(id)} icon={<Icon size={14} />}>
+              {label}
+            </TabButton>
+          ))}
+        </nav>
+      ) : (
+        <BottomTabBar tab={tab} onChange={setTab} />
+      )}
 
-      <main className="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-10 sm:px-10">
+      {/* The extra bottom padding clears the fixed tab bar so the last card in
+        * any tab isn't trapped underneath it. */}
+      <main className="px-edge mx-auto flex max-w-6xl flex-col gap-10 py-10 max-sm:pb-[calc(var(--tabbar-total)_+_2.5rem)]">
         {tab === 'dashboard' ? (
           <>
             <TripStats />

@@ -8,13 +8,14 @@ interface SearchBarProps {
 export function SearchBar({ value, onChange }: SearchBarProps) {
   return (
     <div className="relative w-full max-w-sm">
-      <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate/40" />
+      <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate/40 max-sm:text-slate/80" />
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search destinations or notes…"
-        className="w-full rounded-full border border-slate/20 bg-surface/60 py-2 pl-9 pr-4 text-sm text-slate placeholder:text-slate/40 focus:border-brass"
+        // 16px on phones — anything smaller makes Safari zoom the page on focus.
+        className="w-full rounded-full border border-slate/20 bg-surface/60 py-2 pl-9 pr-4 text-sm text-slate placeholder:text-slate/40 focus:border-brass max-sm:py-2.5 max-sm:text-base"
       />
     </div>
   );

@@ -10,7 +10,7 @@ interface SortControlProps {
 export function SortControl({ sort, onChange }: SortControlProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="mr-1 flex items-center gap-1 font-mono text-[11px] uppercase tracking-wide text-slate/60">
+      <span className="mr-1 flex items-center gap-1 font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
         <ArrowUpDown size={12} /> Sort
       </span>
       {SORT_OPTIONS.map((option) => (
