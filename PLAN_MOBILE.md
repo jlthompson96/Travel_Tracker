@@ -17,14 +17,19 @@
 >
 > **Mobile Lighthouse** (median of 3, `--preset` default mobile, local preview,
 > password gate unset): Performance **86**, Accessibility **100**,
-> Best Practices **96**, SEO **66**.
-> Performance/Accessibility/Best-Practices meet the targets set below. SEO is
-> *deliberately* below target: `public/robots.txt` sends `Disallow: /` because
-> this is a private, password-gated log, and Lighthouse scores that as "blocked
-> from indexing". Delete that file to trade the choice back for ~83.
-> The remaining Best-Practices deduction is `font-size`, which flags the 9-11px
-> mono type the passport/ticket aesthetic depends on — a design decision, not a
-> defect.
+> Best Practices **96**, SEO **92**.
+> All four meet the targets set below. The remaining SEO deduction (`robots-txt`
+> "not valid") is an artifact of `vite preview`'s SPA fallback serving HTML for
+> `/robots.txt`; on GitHub Pages that path 404s, which Lighthouse reads as "no
+> robots.txt" and does not penalise. The Best-Practices deduction is `font-size`,
+> flagging the 9-11px mono type the passport/ticket aesthetic depends on — a
+> design decision, not a defect.
+>
+> Crawler policy is deliberately left at the default. If you want this log kept
+> out of search results, add `public/robots.txt` with `Disallow: /` — that is the
+> correct setting for a private site, and Lighthouse will score it as ~66 for
+> "blocked from indexing", which in that case is the metric being wrong, not the
+> config.
 
 ## Context
 
