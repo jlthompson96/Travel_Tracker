@@ -33,14 +33,14 @@ export function NextAdventurePicker({ trips, distances }: NextAdventurePickerPro
   return (
     <div className="flex flex-col gap-3 border border-dashed border-brass/40 bg-brass/5 p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60">
+        <h3 className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
           <Signpost size={14} className="text-brass" /> Next adventure
         </h3>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={pickClosest}
-            className="flex items-center gap-1.5 rounded-full border border-slate/20 bg-surface/60 px-3.5 py-1.5 font-mono text-xs uppercase tracking-wide text-slate/70 transition-colors hover:border-slate/40 hover:bg-surface/90"
+            className="flex items-center gap-1.5 rounded-full border border-slate/20 bg-surface/60 px-3.5 py-1.5 font-mono text-xs uppercase tracking-wide text-slate/70 transition-colors max-sm:text-slate hover:border-slate/40 hover:bg-surface/90"
           >
             <MapPin size={13} /> Closest option
           </button>
@@ -77,7 +77,7 @@ export function NextAdventurePicker({ trips, distances }: NextAdventurePickerPro
             </div>
           </motion.button>
         ) : (
-          <p className="text-sm text-slate/60">
+          <p className="text-sm text-slate/60 max-sm:text-slate/80">
             {trips.length} places on the list — let us pick one, or jump straight to whichever is closest.
           </p>
         )}

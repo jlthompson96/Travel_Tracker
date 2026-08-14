@@ -30,7 +30,7 @@ export function MapPage({
       <div className="flex flex-col gap-1 border-b border-dashed border-slate/20 pb-5">
         <h2 className="font-display text-lg font-semibold text-ink">Map</h2>
         {!isLoading && !isError && (
-          <p className="font-mono text-xs text-slate/60">
+          <p className="font-mono text-xs text-slate/60 max-sm:text-slate/80">
             {locatedTrips.length} pinned {locatedTrips.length === 1 ? 'location' : 'locations'}
           </p>
         )}
@@ -45,7 +45,15 @@ export function MapPage({
 
       <SortControl sort={sort} onChange={setSort} />
 
-      <TravelMap data={filteredTrips} isLoading={isLoading} isError={isError} filters={filters} height={560} />
+      {/* svh, not vh/dvh: svh is the viewport with the browser toolbars *shown*,
+        * so the map can never end up taller than what's actually on screen. */}
+      <TravelMap
+        data={filteredTrips}
+        isLoading={isLoading}
+        isError={isError}
+        filters={filters}
+        heightClassName="h-[560px] max-sm:h-[min(65svh,420px)]"
+      />
 
       {isError && (
         <div className="rounded border border-stamp-red/30 bg-stamp-red/5 p-4 text-sm text-stamp-red">
@@ -61,7 +69,7 @@ export function MapPage({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
-            className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50"
+            className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50 max-sm:text-slate/80"
           >
             <Compass size={28} />
             <p className="font-display text-lg text-slate/70">No pinned locations match these filters</p>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { MapContainer, Marker, Polyline, TileLayer, Tooltip as LeafletTooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -7,6 +7,7 @@ import { computeTripStats, HOME_LOCATION, useTrips } from '../../../services/not
 import { haversineMiles } from '../../../utils/geo';
 import { ALL_REGIONS, regionForCountry, type Region } from '../../../utils/regions';
 import { homeIcon, stampIcon } from '../../map/utils/mapIcons';
+import { MapTouchGate } from '../../map/components/MapTouchGate';
 import type { Country, Trip } from '../../../types/travel';
 
 const EARTH_CIRCUMFERENCE_MILES = 24_901;
@@ -106,13 +107,13 @@ export function MilesPage() {
     <section className="flex flex-col gap-8">
       <div className="flex flex-col gap-1 border-b border-dashed border-slate/20 pb-5">
         <h2 className="font-display text-lg font-semibold text-ink">Miles Traveled</h2>
-        <p className="font-mono text-xs text-slate/60">
+        <p className="font-mono text-xs text-slate/60 max-sm:text-slate/80">
           Round-trip distance from Fort Mill, SC to every "Been There" destination
         </p>
       </div>
 
       {destinations.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50">
+        <div className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50 max-sm:text-slate/80">
           <Compass size={28} />
           <p className="font-display text-lg text-slate/70">No "Been There" trips with a Location yet</p>
           <p className="text-sm">Mark a trip visited and pin its Location in Notion to see it here.</p>
@@ -126,11 +127,11 @@ export function MilesPage() {
               transition={{ duration: 0.35 }}
               className="flex flex-col justify-center gap-1 border border-slate/15 bg-surface/50 p-5 shadow-sm sm:col-span-1"
             >
-              <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60">
+              <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
                 <Route size={14} /> Total miles traveled
               </div>
               <p className="font-display text-4xl font-semibold text-ink">{totalMiles.toLocaleString()}</p>
-              <p className="font-mono text-[11px] text-slate/60">{earthBlurb}</p>
+              <p className="font-mono text-[11px] text-slate/60 max-sm:text-slate/80">{earthBlurb}</p>
             </motion.div>
 
             {farthest && (
@@ -140,11 +141,11 @@ export function MilesPage() {
                 transition={{ duration: 0.35, delay: 0.06 }}
                 className="flex flex-col justify-center gap-1 border border-slate/15 bg-surface/50 p-5 shadow-sm"
               >
-                <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60">
+                <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
                   <Milestone size={14} /> Farthest trip
                 </div>
                 <p className="font-display text-xl font-semibold leading-snug text-ink">{farthest.destination}</p>
-                <p className="font-mono text-[11px] text-slate/60">{Math.round(farthest.oneWayMiles).toLocaleString()} mi one-way</p>
+                <p className="font-mono text-[11px] text-slate/60 max-sm:text-slate/80">{Math.round(farthest.oneWayMiles).toLocaleString()} mi one-way</p>
               </motion.div>
             )}
 
@@ -155,20 +156,20 @@ export function MilesPage() {
                 transition={{ duration: 0.35, delay: 0.12 }}
                 className="flex flex-col justify-center gap-1 border border-slate/15 bg-surface/50 p-5 shadow-sm"
               >
-                <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60">
+                <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
                   <Footprints size={14} /> Closest trip
                 </div>
                 <p className="font-display text-xl font-semibold leading-snug text-ink">{closest.destination}</p>
-                <p className="font-mono text-[11px] text-slate/60">{Math.round(closest.oneWayMiles).toLocaleString()} mi one-way</p>
+                <p className="font-mono text-[11px] text-slate/60 max-sm:text-slate/80">{Math.round(closest.oneWayMiles).toLocaleString()} mi one-way</p>
               </motion.div>
             )}
           </div>
 
           <div className="flex flex-col gap-3">
-            <h3 className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/50">
+            <h3 className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">
               <Home size={13} /> Routes from home
             </h3>
-            <div className="overflow-hidden rounded border border-slate/15 shadow-sm" style={{ height: 480 }}>
+            <div className="h-[480px] overflow-hidden rounded border border-slate/15 shadow-sm max-sm:h-[min(60svh,360px)]">
               <RouteMap home={HOME_LOCATION} destinations={destinations} />
             </div>
           </div>
@@ -192,6 +193,7 @@ function RouteMap({ home, destinations }: { home: { lat: number; lng: number }; 
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitRoutes home={home} destinations={destinations} />
+      <MapTouchGate />
 
       {destinations.map((d) => (
         <Polyline
@@ -205,7 +207,12 @@ function RouteMap({ home, destinations }: { home: { lat: number; lng: number }; 
       ))}
 
       {destinations.map((d) => (
-        <Marker key={d.key} position={[d.lat, d.lng]} icon={stampIcon('Been There', d.visits)}>
+        <Marker
+          key={d.key}
+          position={[d.lat, d.lng]}
+          icon={stampIcon('Been There', d.visits)}
+          title={`${d.destination} — ${Math.round(d.oneWayMiles).toLocaleString()} mi one-way`}
+        >
           <LeafletTooltip direction="top" offset={[0, -8]}>
             <span className="font-body">
               {d.destination} · {Math.round(d.oneWayMiles).toLocaleString()} mi
@@ -215,7 +222,7 @@ function RouteMap({ home, destinations }: { home: { lat: number; lng: number }; 
         </Marker>
       ))}
 
-      <Marker position={[home.lat, home.lng]} icon={homeIcon()}>
+      <Marker position={[home.lat, home.lng]} icon={homeIcon()} title="Home — Fort Mill, SC">
         <LeafletTooltip direction="top" offset={[0, -8]}>
           <span className="font-body">Home · Fort Mill, SC</span>
         </LeafletTooltip>
@@ -227,10 +234,16 @@ function RouteMap({ home, destinations }: { home: { lat: number; lng: number }; 
 function FitRoutes({ home, destinations }: { home: { lat: number; lng: number }; destinations: Destination[] }) {
   const map = useMap();
 
-  if (destinations.length > 0) {
-    const points: [number, number][] = [[home.lat, home.lng], ...destinations.map((d): [number, number] => [d.lat, d.lng])];
-    map.fitBounds(points, { padding: [30, 30] });
-  }
+  // An effect rather than a call in render — see MapViewportController in
+  // TravelMap.tsx for why fitting bounds during render fights the user's pan.
+  const points = useMemo<[number, number][]>(
+    () => (destinations.length > 0 ? [[home.lat, home.lng], ...destinations.map((d): [number, number] => [d.lat, d.lng])] : []),
+    [home.lat, home.lng, destinations],
+  );
+
+  useEffect(() => {
+    if (points.length > 0) map.fitBounds(points, { padding: [30, 30] });
+  }, [map, points]);
 
   return null;
 }
@@ -241,11 +254,19 @@ function MilesByYearChart({ data }: { data: Array<{ year: string; miles: number 
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="font-mono text-[11px] uppercase tracking-wide text-slate/50">Miles by year</h3>
-      <div className="flex items-end gap-6 border-b border-slate/15 px-2 pb-0" style={{ height: chartHeight + 44 }}>
-        {data.map((d, i) => (
-          <YearBar key={d.year} year={d.year} miles={d.miles} max={max} chartHeight={chartHeight} index={i} />
-        ))}
+      <h3 className="font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">Miles by year</h3>
+      {/* Each column's min width is set by its value label ("12,345"), not the
+        * bar, so enough years will outgrow a phone's content box. Scroll rather
+        * than squeeze; min-w-full keeps a sparse chart full-bleed as before. */}
+      <div className="overflow-x-auto overscroll-x-contain" data-allow-x-scroll>
+        <div
+          className="flex min-w-full items-end gap-6 border-b border-slate/15 px-2 pb-0 max-sm:gap-3"
+          style={{ height: chartHeight + 44 }}
+        >
+          {data.map((d, i) => (
+            <YearBar key={d.year} year={d.year} miles={d.miles} max={max} chartHeight={chartHeight} index={i} />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -269,20 +290,20 @@ function YearBar({
 
   return (
     <div
-      className="flex flex-col items-center gap-1.5"
+      className="flex shrink-0 flex-col items-center gap-1.5"
       onPointerEnter={() => setHover(true)}
       onPointerLeave={() => setHover(false)}
     >
-      <p className="font-mono text-[11px] text-ink">{miles.toLocaleString()}</p>
+      <p className="font-mono text-[11px] text-ink max-sm:text-[10px]">{miles.toLocaleString()}</p>
       <motion.div
         title={`${year}: ${miles.toLocaleString()} mi`}
         initial={{ height: 0 }}
         animate={{ height: barHeight }}
         transition={{ duration: 0.5, delay: index * 0.08, ease: 'easeOut' }}
-        style={{ width: 28 }}
-        className={`rounded-t transition-colors duration-150 ${hover ? 'bg-brass' : 'bg-brass/80'}`}
+        // w-7 is the same 28px the inline style used; as a class it can respond.
+        className={`w-7 rounded-t transition-colors duration-150 max-sm:w-5 ${hover ? 'bg-brass' : 'bg-brass/80'}`}
       />
-      <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60">{year}</p>
+      <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">{year}</p>
     </div>
   );
 }
@@ -292,7 +313,7 @@ function FarthestDestinationsChart({ destinations }: { destinations: Destination
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="font-mono text-[11px] uppercase tracking-wide text-slate/50">Farthest destinations (one-way)</h3>
+      <h3 className="font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">Farthest destinations (one-way)</h3>
       <div className="flex flex-col gap-2.5">
         {destinations.map((d, i) => (
           <DestinationBar key={d.key} destination={d} max={max} index={i} />
@@ -313,7 +334,11 @@ function DestinationBar({ destination, max, index }: { destination: Destination;
       onPointerLeave={() => setHover(false)}
       title={`${destination.destination}: ${Math.round(destination.oneWayMiles).toLocaleString()} mi one-way`}
     >
-      <p className="w-36 shrink-0 truncate text-right text-xs text-slate/70 sm:w-48">{destination.destination}</p>
+      {/* At 375px the fixed label + value columns left only ~95px for the bar
+        * itself; trimming both recovers roughly 65px of it. */}
+      <p className="w-36 shrink-0 truncate text-right text-xs text-slate/70 max-sm:w-24 max-sm:text-[11px] sm:w-48">
+        {destination.destination}
+      </p>
       <div className="h-4 flex-1">
         <motion.div
           initial={{ width: 0 }}
@@ -322,7 +347,9 @@ function DestinationBar({ destination, max, index }: { destination: Destination;
           className={`h-full rounded-r transition-colors duration-150 ${hover ? 'bg-brass' : 'bg-brass/80'}`}
         />
       </div>
-      <p className="w-16 shrink-0 font-mono text-[11px] text-ink">{Math.round(destination.oneWayMiles).toLocaleString()} mi</p>
+      <p className="w-16 shrink-0 font-mono text-[11px] text-ink max-sm:w-12 max-sm:text-[10px]">
+        {Math.round(destination.oneWayMiles).toLocaleString()} mi
+      </p>
     </div>
   );
 }
@@ -342,7 +369,7 @@ function WorldCoverage({ visitedCountries }: { visitedCountries: Country[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <h3 className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/50">
+      <h3 className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">
         <Globe2 size={13} /> World coverage
       </h3>
 
@@ -355,9 +382,9 @@ function WorldCoverage({ visitedCountries }: { visitedCountries: Country[] }) {
         >
           <p className="font-display text-4xl font-semibold text-ink">
             {continentsVisited}
-            <span className="text-lg text-slate/40"> / {ALL_REGIONS.length}</span>
+            <span className="text-lg text-slate/40 max-sm:text-slate/80"> / {ALL_REGIONS.length}</span>
           </p>
-          <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60">Continents visited</p>
+          <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">Continents visited</p>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -366,7 +393,7 @@ function WorldCoverage({ visitedCountries }: { visitedCountries: Country[] }) {
           className="flex flex-col justify-center gap-1 border border-slate/15 bg-surface/50 p-5 shadow-sm"
         >
           <p className="font-display text-4xl font-semibold text-ink">{visitedCountries.length}</p>
-          <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60">Countries &amp; regions visited</p>
+          <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">Countries &amp; regions visited</p>
         </motion.div>
       </div>
 
@@ -392,14 +419,14 @@ function WorldCoverage({ visitedCountries }: { visitedCountries: Country[] }) {
                   {countries.map((country) => (
                     <span
                       key={country}
-                      className="rounded-full bg-ink-navy/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink/70"
+                      className="rounded-full bg-ink-navy/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink/70 max-sm:text-ink"
                     >
                       {country}
                     </span>
                   ))}
                 </div>
               ) : (
-                <span className="text-xs text-slate/40">Not yet</span>
+                <span className="text-xs text-slate/40 max-sm:text-slate/80">Not yet</span>
               )}
             </motion.div>
           );

@@ -37,7 +37,7 @@ export function TimelinePage({
       <div className="flex flex-col gap-1 border-b border-dashed border-slate/20 pb-5">
         <h2 className="font-display text-lg font-semibold text-ink">Timeline</h2>
         {!isLoading && !isError && (
-          <p className="font-mono text-xs text-slate/60">
+          <p className="font-mono text-xs text-slate/60 max-sm:text-slate/80">
             {dated.length} dated {dated.length === 1 ? 'trip' : 'trips'} across {groups.length}{' '}
             {groups.length === 1 ? 'year' : 'years'}
           </p>
@@ -73,7 +73,7 @@ export function TimelinePage({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.25 }}
-            className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50"
+            className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50 max-sm:text-slate/80"
           >
             <Compass size={28} />
             <p className="font-display text-lg text-slate/70">No dated trips match these filters</p>
@@ -99,7 +99,7 @@ function YearSection({ group }: { group: YearGroup }) {
       <div className="flex items-center gap-3">
         <span className="font-display text-2xl font-semibold text-ink">{group.year}</span>
         <span className="h-px flex-1 bg-slate/15" />
-        <span className="font-mono text-[11px] uppercase tracking-wide text-slate/50">
+        <span className="font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">
           {group.trips.length} {group.trips.length === 1 ? 'trip' : 'trips'}
         </span>
       </div>
@@ -161,8 +161,8 @@ function TimelineEntry({ trip, index }: { trip: Trip; index: number }) {
           <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
             <p className="font-display text-base font-semibold text-ink">{trip.destination}</p>
             {dateLabel && (
-              <p className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wide text-slate/60">
-                <CalendarDays size={12} className="text-brass" />
+              <p className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
+                <CalendarDays size={12} className="text-brass max-sm:text-brass-text" />
                 {dateLabel}
               </p>
             )}
@@ -171,17 +171,17 @@ function TimelineEntry({ trip, index }: { trip: Trip; index: number }) {
           <div className="flex flex-wrap items-center gap-2 text-xs text-slate/70">
             {trip.country && (
               <span className="flex items-center gap-1">
-                <MapPin size={12} className="text-brass" />
+                <MapPin size={12} className="text-brass max-sm:text-brass-text" />
                 {trip.country}
               </span>
             )}
             {trip.ratingStars && (
-              <span aria-label={`${trip.ratingStars} of 5 stars`} className="text-brass">
+              <span aria-label={`${trip.ratingStars} of 5 stars`} className="text-brass max-sm:text-brass-text">
                 {'★'.repeat(trip.ratingStars)}
               </span>
             )}
             {trip.priority && (
-              <span className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wide text-slate/60">
+              <span className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
                 <span className={`h-1.5 w-1.5 rounded-full ${PRIORITY_DOT[trip.priority]}`} />
                 {trip.priority}
               </span>
@@ -193,7 +193,7 @@ function TimelineEntry({ trip, index }: { trip: Trip; index: number }) {
               {trip.tripTypes.map((type) => (
                 <span
                   key={type}
-                  className="rounded-full bg-ink-navy/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink/70"
+                  className="rounded-full bg-ink-navy/5 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide text-ink/70 max-sm:text-ink"
                 >
                   {type}
                 </span>

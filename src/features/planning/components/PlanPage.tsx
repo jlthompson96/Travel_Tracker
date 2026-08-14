@@ -25,7 +25,7 @@ export function PlanPage() {
     return map;
   }, [bucketList]);
 
-  const { orderedIds, timeframes, reorder, setTimeframe } = useBucketListPlan(bucketListIds);
+  const { orderedIds, timeframes, reorder, setTimeframe, move } = useBucketListPlan(bucketListIds);
 
   if (isLoading) {
     return (
@@ -49,16 +49,16 @@ export function PlanPage() {
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-1 border-b border-dashed border-slate/20 pb-5">
         <h2 className="font-display text-lg font-semibold text-ink">Plan</h2>
-        <p className="font-mono text-xs text-slate/60">
+        <p className="font-mono text-xs text-slate/60 max-sm:text-slate/80">
           {bucketList.length} bucket-list {bucketList.length === 1 ? 'trip' : 'trips'} — drag to rank, tag a timeframe
         </p>
-        <p className="text-xs text-slate/50">
+        <p className="text-xs text-slate/50 max-sm:text-slate/80">
           This ranking is saved in this browser only — Notion has no field for it, so it never syncs back.
         </p>
       </div>
 
       {bucketList.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50">
+        <div className="flex flex-col items-center gap-2 rounded border border-dashed border-slate/20 py-16 text-center text-slate/50 max-sm:text-slate/80">
           <Compass size={28} />
           <p className="font-display text-lg text-slate/70">No Bucket List trips yet</p>
           <p className="text-sm">Mark a trip "Bucket List" in Notion to plan it here.</p>
@@ -79,6 +79,9 @@ export function PlanPage() {
                   distanceMiles={distances.get(id) ?? null}
                   timeframe={timeframes[id] ?? 'Someday'}
                   onTimeframeChange={(timeframe) => setTimeframe(id, timeframe)}
+                  onMove={(delta) => move(id, delta)}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < orderedIds.length - 1}
                 />
               );
             })}

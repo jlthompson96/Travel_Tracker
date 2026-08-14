@@ -2,12 +2,29 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover lets env(safe-area-inset-*) resolve to real values on
+         notched devices; without it they're always 0px. Deliberately no
+         maximum-scale/user-scalable — pinch-zoom is a WCAG 1.4.4 requirement. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%A7%B3</text></svg>" />
+    <!-- Loaded here rather than via @import in index.css: an @import cannot
+         start until the stylesheet that contains it has been fetched and
+         parsed, which serialises the fonts behind the app CSS. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+    <meta
+      name="description"
+      content="A personal travel log: trips taken and bucket-list destinations, mapped, timelined and stamped like a passport."
+    />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <meta name="theme-color" content="#14232E" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <!-- 'default', not 'black-translucent': the latter starts content *under*
+         the status bar, which would need pt-safe-t on the header. Revisit if a
+         glass top bar ever lands. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Travel Tracker" />
     <title>Travel Tracker</title>
   </head>

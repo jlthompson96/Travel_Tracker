@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Globe2, MapPinned, PlaneTakeoff, Route } from 'lucide-react';
 import { useTrips } from '../../../services/notionAdapter';
 import { computeTripStats } from '../../../services/notionAdapter';
@@ -9,7 +9,7 @@ export function TripStats() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 max-xs:grid-cols-1 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-24 animate-pulse border border-slate/10 bg-slate/5" />
         ))}
@@ -29,7 +29,7 @@ export function TripStats() {
   const topCountry = Object.entries(stats.byCountry).sort((a, b) => b[1] - a[1])[0];
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 max-xs:grid-cols-1 lg:grid-cols-4">
       <StatCard index={0} icon={<PlaneTakeoff size={16} />} label="Trips taken" value={stats.totalBeenThere} />
       <StatCard index={1} icon={<Globe2 size={16} />} label="Countries visited" value={stats.countriesVisited} />
       <StatCard
@@ -72,23 +72,31 @@ function StatCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.06 }}
       whileHover={{ y: -2 }}
-      className="flex flex-col gap-1 border border-slate/15 bg-surface/50 p-4 shadow-sm transition-shadow hover:shadow-md"
+      className="flex flex-col gap-1 border border-slate/15 bg-surface/50 p-4 shadow-sm transition-shadow hover:shadow-md max-sm:p-3"
     >
-      <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60">
+      <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">
         {icon} {label}
       </div>
-      <p className="font-display text-2xl font-semibold text-ink">
+      <p className="font-display text-2xl font-semibold text-ink max-sm:text-xl">
         {typeof value === 'number' ? <CountUp value={value} format={format} /> : value}
       </p>
-      {sub && <p className="font-mono text-[11px] text-slate/60">{sub}</p>}
+      {sub && <p className="font-mono text-[11px] text-slate/60 max-sm:text-slate/80">{sub}</p>}
     </motion.div>
   );
 }
 
 function CountUp({ value, format }: { value: number; format?: (n: number) => string }) {
   const [display, setDisplay] = useState(0);
+  // This is a hand-rolled rAF loop, so index.css's global reduced-motion block
+  // — which only neutralises CSS transitions and animations — cannot reach it.
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (prefersReducedMotion) {
+      setDisplay(value);
+      return;
+    }
+
     let frame: number;
     const duration = 700;
     const start = performance.now();
@@ -102,7 +110,7 @@ function CountUp({ value, format }: { value: number; format?: (n: number) => str
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [value]);
+  }, [value, prefersReducedMotion]);
 
   return <>{format ? format(display) : display}</>;
 }

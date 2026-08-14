@@ -55,7 +55,7 @@ export function StampSlot({ entry }: { entry: PassportEntry }) {
         className="group flex flex-col items-center justify-center gap-1 rounded p-1 transition-transform duration-150 hover:z-10 focus-visible:z-10"
       >
         <PassportStamp trip={trip} size="md" />
-        <span className="max-w-[8rem] truncate font-mono text-[9px] uppercase tracking-wide text-slate/50 group-hover:text-slate/80">
+        <span className="max-w-[8rem] truncate font-mono text-[9px] uppercase tracking-wide text-slate/50 group-hover:text-slate/80 max-sm:text-slate/80">
           {stampDate(trip) ?? trip.destination}
         </span>
       </button>

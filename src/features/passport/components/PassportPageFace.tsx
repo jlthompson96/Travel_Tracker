@@ -56,7 +56,7 @@ export function PassportPageFace({ page, side, pageNumber, isClosed }: PassportP
 
       <span
         aria-hidden
-        className={`absolute bottom-3 font-mono text-[10px] text-slate/40 ${side === 'left' ? 'left-4' : 'right-4'}`}
+        className={`absolute bottom-3 font-mono text-[10px] text-slate/40 ${side === 'left' ? 'left-4' : 'right-4'} max-sm:text-slate/80`}
       >
         {pageNumber}
       </span>
@@ -72,12 +72,12 @@ function CoverFace({ kind, isClosed }: { kind: 'cover' | 'back'; isClosed?: bool
 
       {kind === 'cover' ? (
         <div className="relative flex flex-col items-center gap-3 px-6 text-center">
-          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-brass/80">Been There</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-brass/80 max-sm:text-brass">Been There</p>
           <Compass size={64} strokeWidth={0.9} className="text-brass/70" />
           <h3 className="font-display text-2xl font-semibold tracking-[0.18em] text-brass sm:text-3xl">PASSPORT</h3>
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-cream/70">Joey &amp; Sarah</p>
           {isClosed && (
-            <p className="mt-4 animate-pulse font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40">
+            <p className="mt-4 animate-pulse font-mono text-[10px] uppercase tracking-[0.2em] text-cream/40 max-sm:text-cream/75">
               Tap to open
             </p>
           )}
@@ -102,7 +102,7 @@ function DataPage({ page }: { page: Extract<PassportPage, { kind: 'data' }> }) {
   return (
     <>
       <div className="mb-4 border-b border-dashed border-slate/25 pb-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-brass">Travel Tracker</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-brass max-sm:text-brass-text">Travel Tracker</p>
         <h3 className="font-display text-xl font-semibold text-ink">Holder Details</h3>
       </div>
 
@@ -114,7 +114,7 @@ function DataPage({ page }: { page: Extract<PassportPage, { kind: 'data' }> }) {
         <dl className="relative flex flex-col gap-2.5">
           {rows.map(([label, value]) => (
             <div key={label} className="flex items-baseline justify-between gap-3 border-b border-slate/10 pb-1.5">
-              <dt className="font-mono text-[9px] uppercase tracking-[0.15em] text-slate/50">{label}</dt>
+              <dt className="font-mono text-[9px] uppercase tracking-[0.15em] text-slate/50 max-sm:text-slate/80">{label}</dt>
               <dd className="font-display text-sm font-semibold text-ink">{value}</dd>
             </div>
           ))}
@@ -125,7 +125,7 @@ function DataPage({ page }: { page: Extract<PassportPage, { kind: 'data' }> }) {
        * with nothing but the travel stats above it. */}
       <div
         aria-hidden
-        className="mt-4 overflow-hidden whitespace-nowrap border-t border-slate/15 pt-2 font-mono text-[9px] leading-relaxed tracking-[0.12em] text-slate/35"
+        className="mt-4 overflow-hidden whitespace-nowrap border-t border-slate/15 pt-2 font-mono text-[9px] leading-relaxed tracking-[0.12em] text-slate/35 max-sm:text-slate/80"
       >
         <p>{`TRAVEL<<JOEY<<SARAH<<${'<'.repeat(24)}`}</p>
         <p>{`STAMPS${page.stampCount}<COUNTRIES${page.countryCount}<${'<'.repeat(24)}`}</p>
@@ -137,7 +137,7 @@ function DataPage({ page }: { page: Extract<PassportPage, { kind: 'data' }> }) {
 function StampsPage({ page }: { page: Extract<PassportPage, { kind: 'stamps' }> }) {
   if (page.entries.length === 0) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 rounded border border-dashed border-slate/20 text-center text-slate/50">
+      <div className="flex h-full flex-col items-center justify-center gap-2 rounded border border-dashed border-slate/20 text-center text-slate/50 max-sm:text-slate/80">
         <Stamp size={26} />
         <p className="font-display text-base text-slate/70">No stamps yet</p>
         <p className="px-6 text-xs">Mark a trip as “Been There” in Notion to ink this page.</p>
@@ -152,10 +152,10 @@ function StampsPage({ page }: { page: Extract<PassportPage, { kind: 'stamps' }> 
           {page.year === UNDATED_YEAR ? 'Undated' : page.year}
         </span>
         {page.continued && (
-          <span className="font-mono text-[10px] uppercase tracking-wide text-slate/45">cont.</span>
+          <span className="font-mono text-[10px] uppercase tracking-wide text-slate/45 max-sm:text-slate/80">cont.</span>
         )}
         <span className="h-px flex-1 bg-slate/15" />
-        <span className="font-mono text-[10px] uppercase tracking-wide text-slate/45">
+        <span className="font-mono text-[10px] uppercase tracking-wide text-slate/45 max-sm:text-slate/80">
           {page.entries.length} {page.entries.length === 1 ? 'stamp' : 'stamps'}
         </span>
       </div>

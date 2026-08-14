@@ -39,7 +39,7 @@ export function WeatherWidget({ latitude, longitude }: WeatherWidgetProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/50">
+      <h3 className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">
         <CloudSun size={13} className="text-brass" /> Weather &amp; best time to visit
       </h3>
 
@@ -59,7 +59,7 @@ export function WeatherWidget({ latitude, longitude }: WeatherWidgetProps) {
               />
             ))}
           </div>
-          <p className="text-xs text-slate/60">
+          <p className="text-xs text-slate/60 max-sm:text-slate/80">
             {bestMonthNames ? (
               <>
                 Best months to visit (based on last year's weather): <strong className="text-ink">{bestMonthNames}</strong>
@@ -123,7 +123,7 @@ function MonthBar({
         transition={{ duration: 0.4, delay: 0.02 * climate.month, ease: 'easeOut' }}
         className={`w-full rounded-t ${isBest ? 'bg-brass' : 'bg-slate/20'}`}
       />
-      <span className={`font-mono text-[9px] uppercase tracking-wide ${isBest ? 'text-ink' : 'text-slate/40'}`}>{label}</span>
+      <span className={`font-mono text-[9px] uppercase tracking-wide ${isBest ? 'text-ink' : 'text-slate/40'} max-sm:text-slate/80`}>{label}</span>
     </div>
   );
 }

@@ -41,7 +41,7 @@ export function PasswordGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ink-navy px-6">
+    <div className="px-edge-flat flex min-h-screen items-center justify-center bg-ink-navy max-sm:min-h-dvh">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-sm rounded-lg border border-brass/30 bg-paper p-8 shadow-xl"
@@ -58,7 +58,7 @@ export function PasswordGate({ children }: { children: ReactNode }) {
             setPassword(e.target.value);
             setError(false);
           }}
-          className="mt-5 w-full rounded-md border border-slate/20 bg-white px-3 py-2 text-sm text-slate outline-none focus:border-brass"
+          className="mt-5 w-full rounded-md border border-slate/20 bg-white px-3 py-2 text-sm text-slate outline-none focus:border-brass max-sm:text-base"
           placeholder="Password"
         />
         {error && <p className="mt-2 text-sm text-stamp-red">Incorrect password.</p>}
