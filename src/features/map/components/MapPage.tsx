@@ -2,8 +2,7 @@ import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Compass } from 'lucide-react';
 import type { UseFilteredTrips } from '../../trips/hooks/useFilteredTrips';
-import { FilterPills } from '../../trips/components/FilterPills';
-import { SortControl } from '../../trips/components/SortControl';
+import { FilterBar } from '../../trips/components/filters/FilterBar';
 import { TripCard } from '../../trips/components/TripCard';
 import { TravelMap } from './TravelMap';
 
@@ -17,6 +16,7 @@ export function MapPage({
   setFilters,
   sort,
   setSort,
+  availableRegions,
   availableCountries,
   availableTripTypes,
 }: MapPageProps) {
@@ -36,14 +36,16 @@ export function MapPage({
         )}
       </div>
 
-      <FilterPills
+      <FilterBar
         filters={filters}
         onChange={setFilters}
+        availableRegions={availableRegions}
         availableCountries={availableCountries}
         availableTripTypes={availableTripTypes}
+        resultCount={locatedTrips.length}
+        resultNoun="location"
+        sort={{ value: sort, onChange: setSort }}
       />
-
-      <SortControl sort={sort} onChange={setSort} />
 
       {/* svh, not vh/dvh: svh is the viewport with the browser toolbars *shown*,
         * so the map can never end up taller than what's actually on screen. */}

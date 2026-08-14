@@ -3,9 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Compass, Printer } from 'lucide-react';
 import { groupTripsByLocation } from '../../../utils/groupTrips';
 import type { UseFilteredTrips } from '../hooks/useFilteredTrips';
-import { SearchBar } from './SearchBar';
-import { FilterPills } from './FilterPills';
-import { SortControl } from './SortControl';
+import { FilterBar } from './filters/FilterBar';
 import { TripCard } from './TripCard';
 
 type TripDashboardProps = UseFilteredTrips;
@@ -21,6 +19,7 @@ export function TripDashboard({
   setFilters,
   sort,
   setSort,
+  availableRegions,
   availableCountries,
   availableTripTypes,
 }: TripDashboardProps) {
@@ -28,7 +27,9 @@ export function TripDashboard({
 
   return (
     <section className="flex flex-col gap-5">
-      <div className="flex flex-col gap-4 border-b border-dashed border-slate/20 pb-5 sm:flex-row sm:items-start sm:justify-between">
+      {/* Always a row: since search moved into the filter bar, the right side is
+        * a single icon button and has no reason to stack on phones. */}
+      <div className="flex items-start justify-between gap-4 border-b border-dashed border-slate/20 pb-5">
         <div>
           <h2 className="font-display text-lg font-semibold text-ink">All Trips</h2>
           {!isLoading && !isError && (
@@ -40,7 +41,6 @@ export function TripDashboard({
           )}
         </div>
         <div className="no-print flex items-center gap-2">
-          <SearchBar value={search} onChange={setSearch} />
           <button
             type="button"
             onClick={() => window.print()}
@@ -53,16 +53,16 @@ export function TripDashboard({
         </div>
       </div>
 
-      <div className="no-print flex flex-col gap-3">
-        <FilterPills
-          filters={filters}
-          onChange={setFilters}
-          availableCountries={availableCountries}
-          availableTripTypes={availableTripTypes}
-        />
-
-        <SortControl sort={sort} onChange={setSort} />
-      </div>
+      <FilterBar
+        filters={filters}
+        onChange={setFilters}
+        availableRegions={availableRegions}
+        availableCountries={availableCountries}
+        availableTripTypes={availableTripTypes}
+        resultCount={filteredTrips.length}
+        search={{ value: search, onChange: setSearch }}
+        sort={{ value: sort, onChange: setSort }}
+      />
 
       {isLoading && <SkeletonGrid />}
 

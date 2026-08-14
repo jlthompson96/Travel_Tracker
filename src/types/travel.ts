@@ -23,7 +23,22 @@ export type TripPriority = 'High' | 'Medium' | 'Low';
 
 export type TripType = 'Beach' | 'City' | 'Hiking' | 'Food' | 'Road Trip' | 'Culture';
 
-export type MapRegion = 'World' | 'Europe' | 'North America' | 'South America' | 'Asia' | 'Africa' | 'Oceania';
+/** Continents only. There is deliberately no 'World' member — it used to exist as a
+ * pseudo-region that every consumer had to special-case back into meaning 'All'. */
+export type MapRegion = 'Europe' | 'North America' | 'South America' | 'Asia' | 'Africa' | 'Oceania';
+
+/**
+ * The trip filter state, shared by the dashboard, map, and timeline through the
+ * single `useFilteredTrips` instance in App.tsx.
+ */
+export interface TripFilters {
+  status: TripStatus | 'All';
+  /** Empty array means "All" — multiple countries can be selected at once. */
+  countries: Country[];
+  /** Empty array means "All" — multiple trip types can be selected at once. */
+  tripTypes: TripType[];
+  region: MapRegion | 'All';
+}
 
 /** Live options on the "Country" select property, in the order Notion returns them. */
 export const COUNTRY_OPTIONS = [

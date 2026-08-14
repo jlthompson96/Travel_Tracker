@@ -1,11 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useTrips, HOME_LOCATION } from '../../../services/notionAdapter';
 import { haversineMiles } from '../../../utils/geo';
-import { countryMatchesRegion } from '../../../utils/regions';
-import type { Country, Trip, TripType } from '../../../types/travel';
-import type { TripFilters } from '../components/FilterPills';
-
-const DEFAULT_FILTERS: TripFilters = { status: 'All', countries: [], tripTypes: [], region: 'All' };
+import { ALL_REGIONS, countryMatchesRegion, regionForCountry } from '../../../utils/regions';
+import type { Country, Trip, TripFilters, TripType } from '../../../types/travel';
+import { EMPTY_FILTERS } from '../utils/filterSummary';
 
 export const SORT_OPTIONS = [
   { value: 'date-desc', label: 'Newest first' },
@@ -24,21 +22,25 @@ export type UseFilteredTrips = ReturnType<typeof useFilteredTrips>;
 
 export function useFilteredTrips() {
   const query = useTrips();
-  const [filters, setFilters] = useState<TripFilters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<TripFilters>(EMPTY_FILTERS);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortOption>(DEFAULT_SORT);
 
   const trips = query.data ?? [];
 
+  // Only the continents actually represented in the data, in ALL_REGIONS order
+  // rather than alphabetical — continents read better in their canonical order.
+  const availableRegions = useMemo(() => {
+    const present = new Set(trips.map((t) => regionForCountry(t.country)).filter(Boolean));
+    return ALL_REGIONS.filter((region) => present.has(region));
+  }, [trips]);
+
   const availableCountries = useMemo(
-    () => uniqueSorted(trips.map((t) => t.country).filter((c): c is Country => !!c)),
+    () => byFrequency(trips.map((t) => t.country).filter((c): c is Country => !!c)),
     [trips],
   );
 
-  const availableTripTypes = useMemo(
-    () => uniqueSorted(trips.flatMap((t) => t.tripTypes)) as TripType[],
-    [trips],
-  );
+  const availableTripTypes = useMemo(() => byFrequency(trips.flatMap((t) => t.tripTypes)) as TripType[], [trips]);
 
   const filteredTrips = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -56,6 +58,7 @@ export function useFilteredTrips() {
     setSearch,
     sort,
     setSort,
+    availableRegions,
     availableCountries,
     availableTripTypes,
   };
@@ -65,7 +68,7 @@ function matchesFilters(trip: Trip, filters: TripFilters): boolean {
   if (filters.status !== 'All' && trip.status !== filters.status) return false;
   if (filters.countries.length > 0 && (!trip.country || !filters.countries.includes(trip.country))) return false;
   if (filters.tripTypes.length > 0 && !filters.tripTypes.some((type) => trip.tripTypes.includes(type))) return false;
-  if (filters.region !== 'All' && filters.region !== 'World' && !countryMatchesRegion(trip.country, filters.region)) return false;
+  if (filters.region !== 'All' && !countryMatchesRegion(trip.country, filters.region)) return false;
   return true;
 }
 
@@ -130,6 +133,15 @@ function tripDistanceMiles(trip: Trip): number | null {
   return haversineMiles(HOME_LOCATION, { lat: trip.location.latitude, lng: trip.location.longitude });
 }
 
-function uniqueSorted<T extends string>(values: T[]): T[] {
-  return Array.from(new Set(values)).sort();
+/**
+ * Most-used values first, so the head of a long list is the useful part.
+ *
+ * The localeCompare tiebreak is load-bearing, not cosmetic: most countries in
+ * the data appear exactly once, and without a total order that whole block
+ * would reshuffle between renders.
+ */
+function byFrequency<T extends string>(values: T[]): T[] {
+  const counts = new Map<T, number>();
+  for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1);
+  return [...counts.keys()].sort((a, b) => counts.get(b)! - counts.get(a)! || a.localeCompare(b));
 }

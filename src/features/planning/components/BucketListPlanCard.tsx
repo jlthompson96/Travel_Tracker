@@ -3,7 +3,7 @@ import { Reorder, useDragControls } from 'framer-motion';
 import { ChevronDown, ChevronUp, GripVertical, MapPin } from 'lucide-react';
 import type { Trip } from '../../../types/travel';
 import { PassportStamp } from '../../trips/components/PassportStamp';
-import { Pill } from '../../trips/components/FilterPills';
+import { Pill } from '../../../components/Pill';
 import { TripDetailModal } from '../../trips/components/TripDetails/TripDetailModal';
 import type { Timeframe } from '../hooks/useBucketListPlan';
 
