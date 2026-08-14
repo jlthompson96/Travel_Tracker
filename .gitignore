@@ -6,3 +6,6 @@ dist
 tsconfig.tsbuildinfo
 public/data
 .claude/settings.local.json
+
+# mobile audit screenshots
+scripts/mobile-audit/artifacts
