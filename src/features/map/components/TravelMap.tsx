@@ -22,7 +22,7 @@ function dominantStatus(trips: Trip[]): TripStatus | null {
 }
 
 const DEFAULT_CENTER: [number, number] = [20, 0];
-const REGION_BOUNDS: Record<Exclude<MapRegion, 'World' | 'All'>, [[number, number], [number, number]]> = {
+const REGION_BOUNDS: Record<MapRegion, [[number, number], [number, number]]> = {
   Europe: [[35, -25], [70, 40]],
   'North America': [[7, -170], [83, -52]],
   'South America': [[-56, -82], [13, -34]],
@@ -59,7 +59,7 @@ export function TravelMap({
     if (filters.status !== 'All' && trip.status !== filters.status) return false;
     if (filters.countries.length > 0 && (!trip.country || !filters.countries.includes(trip.country))) return false;
     if (filters.tripTypes.length > 0 && !filters.tripTypes.some((type) => trip.tripTypes.includes(type))) return false;
-    if (filters.region !== 'All' && filters.region !== 'World' && !countryMatchesRegion(trip.country, filters.region)) return false;
+    if (filters.region !== 'All' && !countryMatchesRegion(trip.country, filters.region)) return false;
     return true;
   });
 
@@ -178,7 +178,7 @@ function MapViewportController({ filters, located }: { filters: { region: MapReg
   );
 
   useEffect(() => {
-    if (region !== 'All' && region !== 'World') {
+    if (region !== 'All') {
       map.fitBounds(REGION_BOUNDS[region], { padding: [30, 30] });
       return;
     }

@@ -1,6 +1,7 @@
 import type { Country, MapRegion } from '../types/travel';
 
-export type Region = Exclude<MapRegion, 'World'>;
+/** Alias kept for readability at call sites; MapRegion is continents-only. */
+export type Region = MapRegion;
 
 /** Single source of truth for country -> region/continent, covering every value in
  * COUNTRY_OPTIONS. Previously this list was duplicated (and out of sync) across

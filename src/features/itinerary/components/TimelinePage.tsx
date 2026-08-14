@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarDays, Compass, MapPin } from 'lucide-react';
 import type { UseFilteredTrips } from '../../trips/hooks/useFilteredTrips';
-import { FilterPills } from '../../trips/components/FilterPills';
+import { FilterBar } from '../../trips/components/filters/FilterBar';
 import { TripDetailModal } from '../../trips/components/TripDetails/TripDetailModal';
 import { formatDateRange } from '../../trips/utils/formatTrip';
 import type { Trip } from '../../../types/travel';
@@ -26,6 +26,7 @@ export function TimelinePage({
   isError,
   filters,
   setFilters,
+  availableRegions,
   availableCountries,
   availableTripTypes,
 }: TimelinePageProps) {
@@ -44,11 +45,13 @@ export function TimelinePage({
         )}
       </div>
 
-      <FilterPills
+      <FilterBar
         filters={filters}
         onChange={setFilters}
+        availableRegions={availableRegions}
         availableCountries={availableCountries}
         availableTripTypes={availableTripTypes}
+        resultCount={dated.length}
       />
 
       {isLoading && (

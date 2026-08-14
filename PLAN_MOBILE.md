@@ -46,6 +46,14 @@ The outcome we want: the app is genuinely usable on an iPhone — one-tap naviga
 
 ---
 
+> **Superseded for the filter surface.** The "desktop stays byte-identical" rule below governed
+> this mobile retrofit. It no longer applies to the trip filter UI, which was later redesigned on
+> *both* breakpoints: the always-open pill rows (`FilterPills`, `SortControl`) were replaced by
+> `FilterBar` + `FilterSheet` + `SortMenu` under `src/features/trips/components/filters/`. Phase 4's
+> horizontal filter scrollers went with them. Everything else in this document still binds —
+> `max-sm:` scoping elsewhere, the a11y-100 bar, the glass rules, `layoutId` uniqueness, and a green
+> `npm run audit:mobile`.
+
 ## Strategy: `max-sm:` overrides, not mobile-first base
 
 **Every change to an existing element is scoped with `max-sm:` (or `max-[…]:`). Mobile-first base classes are authored only for brand-new mobile-only components.**
