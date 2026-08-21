@@ -11,7 +11,10 @@
  * so the app still boots uncredentialed.
  */
 import { Client } from '@notionhq/client';
-import { localPhotoName } from '../../src/utils/photoNaming';
+// Extension is explicit because Vercel compiles this function with node16-style
+// module resolution, which rejects extensionless relative imports. `.js` is the
+// spelling TS wants there and resolves to the .ts source in every other mode.
+import { localPhotoName } from '../../src/utils/photoNaming.js';
 
 const TRAVEL_TRACKER_DATA_SOURCE_ID = '1b1d8fd9-c723-4201-b1fc-5968d59e658a';
 
