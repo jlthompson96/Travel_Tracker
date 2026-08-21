@@ -11,6 +11,12 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    // src is browser code, so keep Node's globals out of it even though
+    // @types/node is installed for api/. Without this, every @types/* package
+    // is loaded globally and `process` would silently typecheck in components
+    // where it doesn't exist at runtime. vite/client comes in through the
+    // triple-slash reference in src/vite-env.d.ts, which this doesn't affect.
+    "types": [],
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,

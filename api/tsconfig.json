@@ -1,0 +1,14 @@
+{
+  // The functions in this directory run on Node, not in the browser, so they
+  // need Node's globals (`process`) — which the root config deliberately
+  // withholds from src. Vercel's builder type-checks each function against the
+  // nearest tsconfig, so this file is what it picks up; `npm run build` builds
+  // this project too, which is what keeps the two in agreement.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  // photoNaming is shared with the frontend, so it's pulled in by path rather
+  // than duplicated.
+  "include": ["**/*.ts", "../src/utils/photoNaming.ts"]
+}
