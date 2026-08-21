@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarDays, Compass, MapPin } from 'lucide-react';
+import { PhotoImage } from '../../../components/PhotoImage';
 import type { UseFilteredTrips } from '../../trips/hooks/useFilteredTrips';
 import { FilterBar } from '../../trips/components/filters/FilterBar';
 import { TripDetailModal } from '../../trips/components/TripDetails/TripDetailModal';
@@ -152,8 +153,8 @@ function TimelineEntry({ trip, index }: { trip: Trip; index: number }) {
 
         {thumbnail && (
           <div className="h-20 w-full shrink-0 overflow-hidden rounded border border-slate/15 sm:h-16 sm:w-24">
-            <img
-              src={thumbnail.url}
+            <PhotoImage
+              photo={thumbnail}
               alt={thumbnail.name || `${trip.destination} photo`}
               className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
             />

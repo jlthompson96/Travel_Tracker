@@ -2,7 +2,7 @@ import { webkit, devices } from 'playwright';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173/';
 const WIDTHS = [375, 390, 393, 430];
-const TABS = ['dashboard', 'map', 'timeline', 'passport', 'miles', 'plan', 'compare'];
+const TABS = ['dashboard', 'map', 'timeline', 'passport', 'miles', 'insights', 'plan', 'compare'];
 // Mobile shows 4 primary + More; the other three live in the sheet.
 const BAR_LABELS = ['Trips', 'Map', 'Passport', 'Miles', 'More'];
 
@@ -14,12 +14,13 @@ async function goToTab(page, tab, mobile) {
   const label = { dashboard: 'Trips', miles: 'Miles' }[tab] ?? tab;
   if (!mobile) {
     const full = { dashboard: 'Dashboard', miles: 'Miles Traveled' }[tab] ?? tab;
-    await page.getByRole('button', { name: new RegExp(`^${full}$`, 'i') }).first().click();
+    // Desktop tabs are <Link>s (routes), so they expose the link role, not button.
+    await page.getByRole('link', { name: new RegExp(`^${full}$`, 'i') }).first().click();
   } else if (BAR_LABELS.some((l) => l.toLowerCase() === label.toLowerCase())) {
-    await page.locator('nav[aria-label="Main"] button', { hasText: new RegExp(`^${label}$`, 'i') }).first().click();
+    await page.locator('nav[aria-label="Main"] :is(a,button)', { hasText: new RegExp(`^${label}$`, 'i') }).first().click();
   } else {
-    await page.locator('nav[aria-label="Main"] button', { hasText: /^More$/i }).click();
-    await page.getByRole('dialog', { name: 'More sections' }).getByRole('button', { name: new RegExp(tab, 'i') }).first().click();
+    await page.locator('nav[aria-label="Main"] :is(a,button)', { hasText: /^More$/i }).click();
+    await page.getByRole('dialog', { name: 'More sections' }).getByRole('link', { name: new RegExp(tab, 'i') }).first().click();
   }
   await page.waitForTimeout(450);
 }
@@ -39,7 +40,7 @@ for (const width of WIDTHS) {
   await page.goto(BASE, { waitUntil: 'networkidle' });
 
   // Bottom bar present with exactly the 5 expected items?
-  const barButtons = await page.locator('nav[aria-label="Main"] button').allInnerTexts();
+  const barButtons = await page.locator('nav[aria-label="Main"] :is(a,button)').allInnerTexts();
   const got = barButtons.map((t) => t.trim()).filter(Boolean);
   if (got.length !== 5) fail.push(`[${width}] bottom bar has ${got.length} items, expected 5: ${JSON.stringify(got)}`);
   else note(`[${width}] bottom bar: ${got.join(' · ')}`);
@@ -80,12 +81,16 @@ for (const width of WIDTHS) {
   page.on('pageerror', (e) => fail.push(`[desktop] PAGE ERROR: ${e.message}`));
   await page.goto(BASE, { waitUntil: 'networkidle' });
   // innerText is CSS-transformed (the pills are `uppercase`), so compare case-insensitively.
-  const labels = (await page.locator('nav button').allInnerTexts()).map((t) => t.trim().toUpperCase()).filter(Boolean);
-  const expected = ['Dashboard', 'Map', 'Timeline', 'Passport', 'Miles Traveled', 'Plan', 'Compare'].map((s) => s.toUpperCase());
+  const labels = (await page.locator("nav :is(a,button)").allInnerTexts()).map((t) => t.trim().toUpperCase()).filter(Boolean);
+  const expected = ['Dashboard', 'Map', 'Timeline', 'Passport', 'Miles Traveled', 'Insights', 'Plan', 'Compare'].map(
+    (s) => s.toUpperCase(),
+  );
   if (JSON.stringify(labels) !== JSON.stringify(expected)) {
     fail.push(`[desktop] nav mismatch\n   expected ${JSON.stringify(expected)}\n   got      ${JSON.stringify(labels)}`);
   } else note(`[desktop] nav: ${labels.join(' · ')}`);
-  const fixed = await page.locator('nav[aria-label="Main"]').count();
+  // Both navs carry aria-label="Main" (only one ever renders), so the bottom bar
+  // is identified by its own marker rather than by being the only labelled nav.
+  const fixed = await page.locator('nav[data-bottom-tab-bar]').count();
   if (fixed !== 0) fail.push(`[desktop] bottom tab bar leaked onto desktop`);
   const sw = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   if (sw) fail.push('[desktop] horizontal scroll');

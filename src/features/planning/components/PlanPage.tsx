@@ -6,6 +6,8 @@ import { haversineMiles } from '../../../utils/geo';
 import { useBucketListPlan } from '../hooks/useBucketListPlan';
 import { BucketListPlanCard } from './BucketListPlanCard';
 import { NextAdventurePicker } from './NextAdventurePicker';
+import { SeasonsPlanner } from './SeasonsPlanner';
+import { TripClusters } from './TripClusters';
 import type { Trip } from '../../../types/travel';
 
 export function PlanPage() {
@@ -66,6 +68,10 @@ export function PlanPage() {
       ) : (
         <>
           <NextAdventurePicker trips={bucketList} distances={distances} />
+
+          <SeasonsPlanner trips={bucketList} />
+
+          <TripClusters trips={bucketList} />
 
           <Reorder.Group axis="y" values={orderedIds} onReorder={reorder} className="flex flex-col gap-2">
             {orderedIds.map((id, index) => {

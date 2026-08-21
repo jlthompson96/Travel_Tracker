@@ -5,6 +5,7 @@ dist
 !.env.example
 tsconfig.tsbuildinfo
 public/data
+public/photos
 .claude/settings.local.json
 
 # mobile audit screenshots

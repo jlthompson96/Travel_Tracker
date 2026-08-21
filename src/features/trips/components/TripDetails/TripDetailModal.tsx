@@ -12,6 +12,7 @@ import TripPictures from './TripPictures';
 import { PhotoLightbox } from './PhotoLightbox';
 import { TripLocationMap } from './TripLocationMap';
 import { WeatherWidget } from './WeatherWidget';
+import { TripEditor } from './TripEditor';
 
 interface TripDetailModalProps {
   trip: Trip;
@@ -226,6 +227,8 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
                   <span>{trip.notes}</span>
                 </p>
               )}
+
+              <TripEditor trip={trip} />
 
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center gap-3">

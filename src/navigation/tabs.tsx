@@ -1,7 +1,24 @@
-import { BookOpen, Clock, LayoutGrid, ListOrdered, Map as MapIcon, Milestone, Scale } from 'lucide-react';
+import {
+  BarChart3,
+  BookOpen,
+  Clock,
+  LayoutGrid,
+  ListOrdered,
+  Map as MapIcon,
+  Milestone,
+  Scale,
+} from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-export type Tab = 'dashboard' | 'map' | 'timeline' | 'passport' | 'miles' | 'plan' | 'compare';
+export type Tab =
+  | 'dashboard'
+  | 'map'
+  | 'timeline'
+  | 'passport'
+  | 'miles'
+  | 'insights'
+  | 'plan'
+  | 'compare';
 
 export interface TabDef {
   id: Tab;
@@ -10,23 +27,26 @@ export interface TabDef {
   /** Bottom-bar label. At ~75px per column and 10px type, "Miles Traveled"
    * can't render; anything longer than one short word has to be shortened. */
   short: string;
+  /** URL path. Tabs are real routes, so back/forward and sharing work. */
+  path: string;
   icon: LucideIcon;
 }
 
 export const TABS: TabDef[] = [
-  { id: 'dashboard', label: 'Dashboard', short: 'Trips', icon: LayoutGrid },
-  { id: 'map', label: 'Map', short: 'Map', icon: MapIcon },
-  { id: 'timeline', label: 'Timeline', short: 'Timeline', icon: Clock },
-  { id: 'passport', label: 'Passport', short: 'Passport', icon: BookOpen },
-  { id: 'miles', label: 'Miles Traveled', short: 'Miles', icon: Milestone },
-  { id: 'plan', label: 'Plan', short: 'Plan', icon: ListOrdered },
-  { id: 'compare', label: 'Compare', short: 'Compare', icon: Scale },
+  { id: 'dashboard', label: 'Dashboard', short: 'Trips', path: '/', icon: LayoutGrid },
+  { id: 'map', label: 'Map', short: 'Map', path: '/map', icon: MapIcon },
+  { id: 'timeline', label: 'Timeline', short: 'Timeline', path: '/timeline', icon: Clock },
+  { id: 'passport', label: 'Passport', short: 'Passport', path: '/passport', icon: BookOpen },
+  { id: 'miles', label: 'Miles Traveled', short: 'Miles', path: '/miles', icon: Milestone },
+  { id: 'insights', label: 'Insights', short: 'Insights', path: '/insights', icon: BarChart3 },
+  { id: 'plan', label: 'Plan', short: 'Plan', path: '/plan', icon: ListOrdered },
+  { id: 'compare', label: 'Compare', short: 'Compare', path: '/compare', icon: Scale },
 ];
 
 /**
  * The four that get a permanent home on the bottom bar. Apple's HIG caps a tab
- * bar at five items, and the fifth slot here is "More" — so the three left over
- * (Timeline, Plan, Compare) live in the sheet behind it.
+ * bar at five items, and the fifth slot here is "More" — so the rest
+ * (Timeline, Insights, Plan, Compare) live in the sheet behind it.
  */
 export const PRIMARY_TAB_IDS: Tab[] = ['dashboard', 'map', 'passport', 'miles'];
 
@@ -35,3 +55,13 @@ export const PRIMARY_TABS = PRIMARY_TAB_IDS.map(
 );
 
 export const SECONDARY_TABS = TABS.filter((t) => !PRIMARY_TAB_IDS.includes(t.id));
+
+/**
+ * Which tab a URL belongs to. Unknown paths fall back to the dashboard, which
+ * is also what the catch-all route in App.tsx renders — so a stale bookmark
+ * lands somewhere sensible with the nav in a matching state.
+ */
+export function tabForPath(pathname: string): Tab {
+  const normalized = pathname.replace(/\/+$/, '') || '/';
+  return TABS.find((t) => t.path === normalized)?.id ?? 'dashboard';
+}

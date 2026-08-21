@@ -115,7 +115,11 @@ function DataPage({ page }: { page: Extract<PassportPage, { kind: 'data' }> }) {
           {rows.map(([label, value]) => (
             <div key={label} className="flex items-baseline justify-between gap-3 border-b border-slate/10 pb-1.5">
               <dt className="font-mono text-[9px] uppercase tracking-[0.15em] text-slate/50 max-sm:text-slate/80">{label}</dt>
-              <dd className="font-display text-sm font-semibold text-ink">{value}</dd>
+              {/* nowrap: these values are short and belong on the label's line.
+                * Without it, html-to-image's clone (see SharePassportButton)
+                * re-flows "Travel Record" onto two lines, which then collides
+                * with the row beneath it in the shared image. */}
+              <dd className="whitespace-nowrap font-display text-sm font-semibold text-ink">{value}</dd>
             </div>
           ))}
         </dl>

@@ -13,29 +13,40 @@
  *      (data source id: 1b1d8fd9-c723-4201-b1fc-5968d59e658a)
  *   3. returns the raw JSON to this adapter unchanged
  *
- * This file is written against that contract: `fetchTravelTrackerData()`
- * calls `VITE_NOTION_PROXY_URL` (defaults to "/api/notion/travel-tracker" in
- * dev, where vite.config.ts proxies it to api/notion/travel-tracker.ts) and
- * hands the response to the pure transformer. GitHub Pages can't run that
- * proxy or hold the token, so production builds instead default to a static
- * JSON snapshot written by scripts/fetch-notion-data.mjs during `npm run
- * build` — same response shape, so the transformer doesn't know the
- * difference. Swap the fetch body for a mock/fixture in tests or Storybook
- * without touching any component.
+ * This file is written against that contract: `fetchTravelTrackerData()` calls
+ * "/api/notion/travel-tracker" and hands the response to the pure transformer.
+ * That one URL works in both environments — vite.config.ts serves it from
+ * api/notion/travel-tracker.ts in dev, and Vercel deploys the same file as a
+ * function in production. Data is therefore live on every load; the old
+ * build-time JSON snapshot (and the weekly cron that refreshed it) is gone.
+ * Swap the fetch body for a mock/fixture in tests or Storybook without
+ * touching any component.
  * ----------------------------------------------------------------------------
  */
 
-import { useQuery } from '@tanstack/react-query';
-import type { NotionQueryResponse, RatingStars, Trip, TripStats, TripType } from '../types/travel';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type {
+  NotionQueryResponse,
+  RatingStars,
+  Trip,
+  TripDateRange,
+  TripPriority,
+  TripStats,
+  TripStatus,
+  TripType,
+} from '../types/travel';
 import { transformNotionPages } from '../utils/transformNotionData';
 import { haversineMiles, type LatLng } from '../utils/geo';
+import { readWriteToken } from '../lib/writeToken';
 
 /** Origin point for the "Miles Traveled" stat — no home-base property exists in Notion, so this is hardcoded. */
 export const HOME_LOCATION: LatLng = { lat: 35.0072, lng: -80.9451 }; // Fort Mill, SC
 
-const PROXY_URL =
-  import.meta.env.VITE_NOTION_PROXY_URL ??
-  (import.meta.env.DEV ? '/api/notion/travel-tracker' : `${import.meta.env.BASE_URL}data/travel-tracker.json`);
+const PROXY_URL = import.meta.env.VITE_NOTION_PROXY_URL ?? '/api/notion/travel-tracker';
+const WRITE_URL = '/api/notion/trip';
+
+/** The query key every read goes through — writes invalidate exactly this. */
+export const TRIPS_QUERY_KEY = ['notion', 'travel-tracker'] as const;
 
 export class NotionFetchError extends Error {
   constructor(message: string, public status?: number) {
@@ -70,10 +81,107 @@ export async function fetchTravelTrackerData(): Promise<Trip[]> {
 /** TanStack Query hook — the one place components should read trip data from. */
 export function useTrips() {
   return useQuery({
-    queryKey: ['notion', 'travel-tracker'],
+    queryKey: TRIPS_QUERY_KEY,
     queryFn: fetchTravelTrackerData,
     staleTime: 5 * 60 * 1000, // Notion data doesn't change every second — 5 min is a fair default
     retry: 1,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Writes — see api/notion/trip.ts for the server side.
+// ---------------------------------------------------------------------------
+
+/** The fields a trip can be edited through. Mirrors TripPatch in api/notion/trip.ts. */
+export interface TripPatch {
+  status?: TripStatus | null;
+  ratingStars?: RatingStars | null;
+  priority?: TripPriority | null;
+  notes?: string | null;
+  dateVisited?: { start: string; end?: string | null } | null;
+}
+
+export class TripUpdateError extends Error {
+  constructor(message: string, public status?: number) {
+    super(message);
+    this.name = 'TripUpdateError';
+  }
+}
+
+/** Applies a patch to the cached Trip so the UI can update before Notion confirms. */
+function applyPatch(trip: Trip, patch: TripPatch): Trip {
+  const next: Trip = { ...trip };
+  if ('status' in patch) next.status = patch.status ?? null;
+  if ('ratingStars' in patch) next.ratingStars = patch.ratingStars ?? null;
+  if ('priority' in patch) next.priority = patch.priority ?? null;
+  if ('notes' in patch) next.notes = patch.notes || null;
+  if ('dateVisited' in patch) {
+    next.dateVisited = patch.dateVisited
+      ? toDateRange(patch.dateVisited.start, patch.dateVisited.end ?? null)
+      : null;
+  }
+  return next;
+}
+
+/** Mirrors parseDateRange's nights math so the optimistic value matches the refetch. */
+function toDateRange(start: string, end: string | null): TripDateRange {
+  const nights = end
+    ? Math.round((new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  return { start, end, isDateTime: start.includes('T'), nights: nights !== null && nights >= 0 ? nights : null };
+}
+
+/**
+ * Edits one trip in Notion.
+ *
+ * Optimistic: the cache updates immediately and rolls back if the request
+ * fails, because a star rating that waits ~800ms on a Notion round-trip feels
+ * broken. The settle-time invalidate is what reconciles anything Notion
+ * normalized differently from our guess.
+ */
+export function useUpdateTrip() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, patch }: { id: string; patch: TripPatch }) => {
+      const token = readWriteToken();
+      if (!token) throw new TripUpdateError('Unlock the site before editing.', 401);
+
+      const res = await fetch(WRITE_URL, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json', 'x-tt-token': token },
+        body: JSON.stringify({ id, patch }),
+      });
+
+      if (!res.ok) {
+        const message = await res
+          .json()
+          .then((b: { error?: string }) => b.error)
+          .catch(() => null);
+        throw new TripUpdateError(message ?? `Update failed (${res.status})`, res.status);
+      }
+      return res.json();
+    },
+
+    onMutate: async ({ id, patch }) => {
+      // Stop an in-flight refetch from landing on top of the optimistic value.
+      await queryClient.cancelQueries({ queryKey: TRIPS_QUERY_KEY });
+      const previous = queryClient.getQueryData<Trip[]>(TRIPS_QUERY_KEY);
+
+      queryClient.setQueryData<Trip[]>(TRIPS_QUERY_KEY, (trips) =>
+        trips?.map((trip) => (trip.id === id ? applyPatch(trip, patch) : trip)),
+      );
+
+      return { previous };
+    },
+
+    onError: (_error, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(TRIPS_QUERY_KEY, context.previous);
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: TRIPS_QUERY_KEY });
+    },
   });
 }
 

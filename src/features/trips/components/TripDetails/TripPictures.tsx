@@ -1,3 +1,4 @@
+import { PhotoImage } from '../../../../components/PhotoImage';
 import type { Trip } from '../../../../types/travel';
 
 interface TripPicturesProps {
@@ -17,8 +18,8 @@ const TripPictures = ({ trip, onSelect }: TripPicturesProps) => {
           onClick={() => onSelect(index)}
           className="group aspect-square overflow-hidden rounded border border-slate/15"
         >
-          <img
-            src={photo.url}
+          <PhotoImage
+            photo={photo}
             alt={photo.name || `${trip.destination} photo`}
             className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
           />

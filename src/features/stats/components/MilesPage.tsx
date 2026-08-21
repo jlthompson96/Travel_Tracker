@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { HorizontalBarChart, VerticalBarChart } from './charts';
 import { MapContainer, Marker, Polyline, TileLayer, Tooltip as LeafletTooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Compass, Footprints, Globe2, Home, Milestone, Route } from 'lucide-react';
@@ -174,9 +175,29 @@ export function MilesPage() {
             </div>
           </div>
 
-          {milesByYear.length >= 2 && <MilesByYearChart data={milesByYear} />}
+          {milesByYear.length >= 2 && (
+            <VerticalBarChart
+              heading="Miles by year"
+              data={milesByYear.map((d) => ({
+                key: d.year,
+                label: d.year,
+                value: d.miles,
+                valueLabel: d.miles.toLocaleString(),
+              }))}
+            />
+          )}
 
-          {farthestFirst.length >= 2 && <FarthestDestinationsChart destinations={farthestFirst.slice(0, 8)} />}
+          {farthestFirst.length >= 2 && (
+            <HorizontalBarChart
+              heading="Farthest destinations (one-way)"
+              data={farthestFirst.slice(0, 8).map((d) => ({
+                key: d.key,
+                label: d.destination,
+                value: d.oneWayMiles,
+                valueLabel: `${Math.round(d.oneWayMiles).toLocaleString()} mi`,
+              }))}
+            />
+          )}
 
           <WorldCoverage visitedCountries={visitedCountries} />
         </>
@@ -246,112 +267,6 @@ function FitRoutes({ home, destinations }: { home: { lat: number; lng: number };
   }, [map, points]);
 
   return null;
-}
-
-function MilesByYearChart({ data }: { data: Array<{ year: string; miles: number }> }) {
-  const max = Math.max(...data.map((d) => d.miles));
-  const chartHeight = 140;
-
-  return (
-    <div className="flex flex-col gap-3">
-      <h3 className="font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">Miles by year</h3>
-      {/* Each column's min width is set by its value label ("12,345"), not the
-        * bar, so enough years will outgrow a phone's content box. Scroll rather
-        * than squeeze; min-w-full keeps a sparse chart full-bleed as before. */}
-      <div className="overflow-x-auto overscroll-x-contain" data-allow-x-scroll>
-        <div
-          className="flex min-w-full items-end gap-6 border-b border-slate/15 px-2 pb-0 max-sm:gap-3"
-          style={{ height: chartHeight + 44 }}
-        >
-          {data.map((d, i) => (
-            <YearBar key={d.year} year={d.year} miles={d.miles} max={max} chartHeight={chartHeight} index={i} />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function YearBar({
-  year,
-  miles,
-  max,
-  chartHeight,
-  index,
-}: {
-  year: string;
-  miles: number;
-  max: number;
-  chartHeight: number;
-  index: number;
-}) {
-  const [hover, setHover] = useState(false);
-  const barHeight = max > 0 ? Math.max((miles / max) * chartHeight, 3) : 0;
-
-  return (
-    <div
-      className="flex shrink-0 flex-col items-center gap-1.5"
-      onPointerEnter={() => setHover(true)}
-      onPointerLeave={() => setHover(false)}
-    >
-      <p className="font-mono text-[11px] text-ink max-sm:text-[10px]">{miles.toLocaleString()}</p>
-      <motion.div
-        title={`${year}: ${miles.toLocaleString()} mi`}
-        initial={{ height: 0 }}
-        animate={{ height: barHeight }}
-        transition={{ duration: 0.5, delay: index * 0.08, ease: 'easeOut' }}
-        // w-7 is the same 28px the inline style used; as a class it can respond.
-        className={`w-7 rounded-t transition-colors duration-150 max-sm:w-5 ${hover ? 'bg-brass' : 'bg-brass/80'}`}
-      />
-      <p className="font-mono text-[11px] uppercase tracking-wide text-slate/60 max-sm:text-slate/80">{year}</p>
-    </div>
-  );
-}
-
-function FarthestDestinationsChart({ destinations }: { destinations: Destination[] }) {
-  const max = Math.max(...destinations.map((d) => d.oneWayMiles));
-
-  return (
-    <div className="flex flex-col gap-3">
-      <h3 className="font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">Farthest destinations (one-way)</h3>
-      <div className="flex flex-col gap-2.5">
-        {destinations.map((d, i) => (
-          <DestinationBar key={d.key} destination={d} max={max} index={i} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DestinationBar({ destination, max, index }: { destination: Destination; max: number; index: number }) {
-  const [hover, setHover] = useState(false);
-  const widthPct = max > 0 ? Math.max((destination.oneWayMiles / max) * 100, 3) : 0;
-
-  return (
-    <div
-      className="flex items-center gap-3"
-      onPointerEnter={() => setHover(true)}
-      onPointerLeave={() => setHover(false)}
-      title={`${destination.destination}: ${Math.round(destination.oneWayMiles).toLocaleString()} mi one-way`}
-    >
-      {/* At 375px the fixed label + value columns left only ~95px for the bar
-        * itself; trimming both recovers roughly 65px of it. */}
-      <p className="w-36 shrink-0 truncate text-right text-xs text-slate/70 max-sm:w-24 max-sm:text-[11px] sm:w-48">
-        {destination.destination}
-      </p>
-      <div className="h-4 flex-1">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${widthPct}%` }}
-          transition={{ duration: 0.5, delay: index * 0.06, ease: 'easeOut' }}
-          className={`h-full rounded-r transition-colors duration-150 ${hover ? 'bg-brass' : 'bg-brass/80'}`}
-        />
-      </div>
-      <p className="w-16 shrink-0 font-mono text-[11px] text-ink max-sm:w-12 max-sm:text-[10px]">
-        {Math.round(destination.oneWayMiles).toLocaleString()} mi
-      </p>
-    </div>
-  );
 }
 
 function WorldCoverage({ visitedCountries }: { visitedCountries: Country[] }) {

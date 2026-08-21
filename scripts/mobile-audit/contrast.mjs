@@ -1,7 +1,8 @@
 import { webkit, devices } from 'playwright';
+import { seedUnlocked } from './unlock.mjs';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173/';
-const TABS = ['Trips', 'Map', 'Passport', 'Miles', 'timeline', 'plan', 'compare'];
+const TABS = ['Trips', 'Map', 'Passport', 'Miles', 'timeline', 'insights', 'plan', 'compare'];
 
 /** Runs in the page: composite each text node's colour over its real
  * background and report anything under the WCAG AA threshold for its size. */
@@ -103,16 +104,17 @@ for (const theme of ['light', 'dark']) {
     ...devices['iPhone 13'], viewport: { width: 375, height: 667 }, isMobile: true, hasTouch: true,
   });
   await ctx.addInitScript((t) => localStorage.setItem('travel-tracker-theme', t), theme);
+  await seedUnlocked(ctx);
   const page = await ctx.newPage();
   await page.route('**://*.tile.openstreetmap.org/**', (r) => r.abort());
   await page.goto(BASE, { waitUntil: 'networkidle' });
 
   for (const tab of TABS) {
-    const bar = page.locator('nav[aria-label="Main"] button', { hasText: new RegExp(`^${tab}$`, 'i') });
+    const bar = page.locator('nav[aria-label="Main"] :is(a,button)', { hasText: new RegExp(`^${tab}$`, 'i') });
     if (await bar.count()) await bar.first().click();
     else {
-      await page.locator('nav[aria-label="Main"] button', { hasText: /^More$/i }).click();
-      await page.getByRole('dialog', { name: 'More sections' }).getByRole('button', { name: new RegExp(tab, 'i') }).first().click();
+      await page.locator('nav[aria-label="Main"] :is(a,button)', { hasText: /^More$/i }).click();
+      await page.getByRole('dialog', { name: 'More sections' }).getByRole('link', { name: new RegExp(tab, 'i') }).first().click();
     }
     await page.waitForTimeout(900);
     for (const f of await page.evaluate(AUDIT)) {

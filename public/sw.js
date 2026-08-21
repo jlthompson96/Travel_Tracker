@@ -1,19 +1,24 @@
 /*
  * Travel Tracker service worker.
  *
- * The site redeploys weekly via cron (see .github/workflows/deploy.yml) purely
- * to refresh Notion data, so a naive cache-first worker would happily serve
- * months-old trips. Strategy per request type:
+ * Trip data is now live from Notion via /api/notion/travel-tracker, and it's
+ * editable in-app, so a naive cache-first worker would happily serve a rating
+ * you changed a minute ago. Strategy per request type:
  *
- *   - navigations + trip JSON -> network-first (fresh wins; cache is the
- *     offline fallback), so a redeploy is picked up on the next online load.
+ *   - navigations + trip data -> network-first (fresh wins; cache is the
+ *     offline fallback), so edits and Notion changes show up immediately.
  *   - hashed build assets     -> cache-first (Vite content-hashes filenames,
  *     so a given URL's bytes never change).
+ *   - mirrored photos         -> cache-first. scripts/mirror-photos.mjs gives
+ *     them stable per-block-id names, which is the whole reason they're
+ *     mirrored rather than served from Notion's expiring signed URLs.
  *   - cross-origin (OSM tiles, open-meteo) -> network-only, uncached. Map tiles
  *     are unbounded in size and not worth evicting real app data for.
  */
 
-const VERSION = 'v1';
+// Bumped to v2 when the app moved off the build-time JSON snapshot onto the
+// live API — old caches hold a URL that no longer exists.
+const VERSION = 'v2';
 const SHELL_CACHE = `tt-shell-${VERSION}`;
 const ASSET_CACHE = `tt-assets-${VERSION}`;
 const DATA_CACHE = `tt-data-${VERSION}`;
@@ -39,12 +44,28 @@ async function precacheAll() {
     }
   }
 
-  // Seed the trip data too, so a first-ever offline load still has trips.
+  // Seed the trip data too, so a first-ever offline load still has trips. This
+  // costs one Notion query at install time, which is worth it: without it, a
+  // visitor who installs and immediately loses signal boots to an empty app.
+  const data = await caches.open(DATA_CACHE);
+  await Promise.allSettled([
+    data.add('./api/notion/travel-tracker'),
+    // Precomputed climate for the Seasons planner and every trip's weather chart.
+    data.add('./data/climate.json'),
+  ]);
+
+  // Mirrored photos, listed by scripts/mirror-photos.mjs. Resized to a 1600px
+  // long edge there precisely so this is a reasonable thing to do over cellular.
+  // allSettled throughout: a single missing file must not abort the install and
+  // leave the worker with no cache at all.
   try {
-    const data = await caches.open(DATA_CACHE);
-    await data.add('./data/travel-tracker.json');
+    const names = await fetch('./photos/manifest.json').then((res) => (res.ok ? res.json() : []));
+    if (Array.isArray(names) && names.length) {
+      const photos = await caches.open(ASSET_CACHE);
+      await Promise.allSettled(names.map((name) => photos.add(`./photos/${name}`)));
+    }
   } catch {
-    // dev/proxy setups won't have the static snapshot — not fatal.
+    // No manifest (uncredentialed build) — photos just cache on first view.
   }
 }
 
@@ -62,11 +83,16 @@ self.addEventListener('activate', (event) => {
 });
 
 function isTripData(url) {
-  return url.pathname.includes('/data/travel-tracker.json') || url.pathname.includes('/api/notion/');
+  return url.pathname.includes('/api/notion/') || url.pathname.includes('/data/');
 }
 
 function isHashedAsset(url) {
   return url.pathname.includes('/assets/');
+}
+
+/** Mirrored trip photos: stable names, immutable bytes — same deal as assets. */
+function isMirroredPhoto(url) {
+  return url.pathname.startsWith('/photos/');
 }
 
 /*
@@ -122,7 +148,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (isHashedAsset(url)) {
+  if (isHashedAsset(url) || isMirroredPhoto(url)) {
     event.respondWith(cacheFirst(request, ASSET_CACHE));
     return;
   }

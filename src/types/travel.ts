@@ -40,14 +40,27 @@ export interface TripFilters {
   region: MapRegion | 'All';
 }
 
-/** Live options on the "Country" select property, in the order Notion returns them. */
+/**
+ * Countries known to be on the "Country" select property when this was written,
+ * in the order Notion returns them.
+ *
+ * This is a display-ordering hint, NOT the set of valid values. It used to be a
+ * closed union (`type Country = (typeof COUNTRY_OPTIONS)[number]`), which was
+ * safe only while data arrived through a snapshot rebuilt from this same list.
+ * Now that api/notion/travel-tracker.ts queries Notion live, adding a country in
+ * Notion surfaces it immediately — and a closed union would have silently
+ * dropped it from filters with no error anywhere. `useFilteredTrips` derives its
+ * country list from the data at runtime, so nothing depends on this being complete.
+ */
 export const COUNTRY_OPTIONS = [
   'USA', 'Greece', 'Italy', 'France', 'Spain', 'Japan', 'Mexico', 'Portugal',
   'Thailand', 'Costa Rica', 'Iceland', 'Ireland', 'Germany', 'Hungary',
   'Bulgaria', 'Ukraine', 'Vatican City', 'New Zealand', 'Scotland', 'England',
   'St. Vincent and the Grenadines', 'Australia',
 ] as const;
-export type Country = (typeof COUNTRY_OPTIONS)[number];
+
+/** Any country name Notion returns. See COUNTRY_OPTIONS for the known set. */
+export type Country = string;
 
 /** 1–5, parsed from the "★".."★★★★★" select options. */
 export type RatingStars = 1 | 2 | 3 | 4 | 5;
@@ -169,7 +182,8 @@ export interface NotionFilesProperty {
   files: Array<{
     name: string;
     type: 'file' | 'external';
-    file?: { url: string; expiry_time: string };
+    // expiry_time is absent on photos the build script has mirrored locally.
+    file?: { url: string; expiry_time?: string };
     external?: { url: string };
   }>;
 }

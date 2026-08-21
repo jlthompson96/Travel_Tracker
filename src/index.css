@@ -49,9 +49,14 @@
   --glass-alpha: 0.8;
   --glass-border-alpha: 0.22;
 
-  /* On the dark page, standard brass already measures 5.79:1 — no deepening
-   * needed, and deepening would in fact make it worse. */
-  --color-brass-text: 185 139 62;
+  /* Light mode deepens brass for small text; dark mode has to LIGHTEN it, for
+   * the same reason. Plain brass (185 139 62) does clear AA against the dark
+   * page itself at 5.79:1, which is why this used to just repeat it — but small
+   * brass text also sits on brass-tinted chips (TripCard's "N visits"), and a
+   * brass tint lifts the local background enough to drag plain brass under AA.
+   * Lightening fixes the tinted case (5.7:1) and improves the page case (7.3:1).
+   * Verified by scripts/mobile-audit/contrast.mjs. */
+  --color-brass-text: 205 160 85;
 }
 
 @layer base {

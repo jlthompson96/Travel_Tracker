@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    // ES2022 for Array.prototype.at etc. The app targets iOS 17+ (see
+    // PLAN_MOBILE.md), well past Safari 16.4 where these landed. `target` stays
+    // ES2020 — this only widens the available types, it doesn't change output.
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",

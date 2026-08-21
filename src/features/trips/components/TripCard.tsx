@@ -84,8 +84,13 @@ export function TripCard({ trips }: TripCardProps) {
           </h3>
           <div className="mt-0.5 flex flex-wrap items-center gap-2">
             {primary.country && <p className="text-sm text-slate/70">{primary.country}</p>}
+            {/* Tint is /10 rather than /15: in dark mode --color-brass-text is
+              * plain brass (it already clears AA against the page), but a 15%
+              * brass tint lifts the local background enough to drop it to
+              * 4.13:1. The lighter tint puts it back over AA at 4.9:1 and is
+              * visually near-identical. */}
             {trips.length > 1 && (
-              <span className="rounded-full bg-brass/15 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-brass max-sm:text-brass-text">
+              <span className="rounded-full bg-brass/10 px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-wide text-brass max-sm:text-brass-text">
                 {trips.length} visits
               </span>
             )}

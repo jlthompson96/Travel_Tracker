@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { MoreHorizontal } from 'lucide-react';
 import { MoreSheet } from './MoreSheet';
@@ -6,7 +7,6 @@ import { PRIMARY_TABS, PRIMARY_TAB_IDS, type Tab } from '../navigation/tabs';
 
 interface BottomTabBarProps {
   tab: Tab;
-  onChange: (tab: Tab) => void;
 }
 
 /**
@@ -46,28 +46,33 @@ function useTextFieldFocused(): boolean {
   return focused;
 }
 
+/**
+ * Renders as a real <Link> for destinations and a <button> for the "More"
+ * sheet, which opens an overlay rather than navigating. Both share the same
+ * classes so the 44pt touch target and focus ring the mobile audit checks are
+ * identical either way.
+ */
 function TabItem({
   label,
   icon,
   active,
+  to,
   onClick,
   reduceMotion,
 }: {
   label: string;
   icon: React.ReactNode;
   active: boolean;
-  onClick: () => void;
+  to?: string;
+  onClick?: () => void;
   reduceMotion: boolean | null;
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-current={active ? 'page' : undefined}
-      className={`relative flex min-h-touch flex-1 flex-col items-center justify-center gap-0.5 rounded-lg transition-colors ${
-        active ? 'text-ink' : 'text-slate'
-      }`}
-    >
+  const className = `relative flex min-h-touch flex-1 flex-col items-center justify-center gap-0.5 rounded-lg transition-colors ${
+    active ? 'text-ink' : 'text-slate'
+  }`;
+
+  const inner = (
+    <>
       {active && (
         <motion.span
           // Deliberately NOT 'main-tab-active' — the desktop nav owns that id,
@@ -84,6 +89,20 @@ function TabItem({
         {icon}
         <span className="font-mono text-[10px] uppercase tracking-wide">{label}</span>
       </span>
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link to={to} aria-current={active ? 'page' : undefined} className={className}>
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" onClick={onClick} aria-current={active ? 'page' : undefined} className={className}>
+      {inner}
     </button>
   );
 }
@@ -95,7 +114,7 @@ function TabItem({
  * Rendered as a <nav> so index.css's `nav { display: none }` print rule hides
  * it on paper without any extra plumbing.
  */
-export function BottomTabBar({ tab, onChange }: BottomTabBarProps) {
+export function BottomTabBar({ tab }: BottomTabBarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const reduceMotion = useReducedMotion();
   const keyboardOpen = useTextFieldFocused();
@@ -108,17 +127,22 @@ export function BottomTabBar({ tab, onChange }: BottomTabBarProps) {
     <>
       <nav
         aria-label="Main"
+        // Explicit hook for scripts/mobile-audit/overflow.mjs, which checks the
+        // bottom bar never renders on desktop. It used to key off
+        // `nav[aria-label="Main"]`, which only worked while the desktop pill row
+        // happened to be unlabelled.
+        data-bottom-tab-bar
         // `glass` supplies its own background and border colour, and falls back
         // to fully opaque where blur is unavailable or unwanted (see index.css).
         className="glass fixed inset-x-0 bottom-0 z-nav flex h-tabbar items-stretch gap-1 border-t px-2 pb-safe-b"
       >
-        {PRIMARY_TABS.map(({ id, short, icon: Icon }) => (
+        {PRIMARY_TABS.map(({ id, short, path, icon: Icon }) => (
           <TabItem
             key={id}
             label={short}
             icon={<Icon size={20} />}
             active={id === tab}
-            onClick={() => onChange(id)}
+            to={path}
             reduceMotion={reduceMotion}
           />
         ))}
@@ -131,7 +155,7 @@ export function BottomTabBar({ tab, onChange }: BottomTabBarProps) {
         />
       </nav>
 
-      <MoreSheet open={moreOpen} active={tab} onSelect={onChange} onClose={() => setMoreOpen(false)} />
+      <MoreSheet open={moreOpen} active={tab} onClose={() => setMoreOpen(false)} />
     </>
   );
 }

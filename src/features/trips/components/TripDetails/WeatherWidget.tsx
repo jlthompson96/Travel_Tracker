@@ -2,9 +2,8 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { CloudSun } from 'lucide-react';
 import { useDestinationClimate } from '../../hooks/useDestinationClimate';
-import type { MonthlyClimate } from '../../../../utils/weather';
+import { bestMonthIndexes as computeBestMonths, MONTH_LABELS, type MonthlyClimate } from '../../../../utils/weather';
 
-const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const CHART_HEIGHT = 64;
 
 interface WeatherWidgetProps {
@@ -12,22 +11,11 @@ interface WeatherWidgetProps {
   longitude: number | null | undefined;
 }
 
-/** Comfort score: closer to a mild 75°F and drier scores higher. Purely a rough
- * "best months" heuristic from one past year of data — not a forecast. */
-function scoreMonth(m: MonthlyClimate): number {
-  if (Number.isNaN(m.avgHighF)) return -Infinity;
-  return -Math.abs(m.avgHighF - 75) - m.totalPrecipIn * 3;
-}
-
 export function WeatherWidget({ latitude, longitude }: WeatherWidgetProps) {
   const { data, isLoading, isError } = useDestinationClimate(latitude, longitude);
 
-  const bestMonthIndexes = useMemo(() => {
-    if (!data) return new Set<number>();
-    const scored = data.map((m, i) => ({ i, score: scoreMonth(m) })).filter((m) => Number.isFinite(m.score));
-    const top = [...scored].sort((a, b) => b.score - a.score).slice(0, 3);
-    return new Set(top.map((m) => m.i));
-  }, [data]);
+  // Shared with the Seasons planner so a trip's "best months" agree everywhere.
+  const bestMonthIndexes = useMemo(() => (data ? computeBestMonths(data) : new Set<number>()), [data]);
 
   if (latitude == null || longitude == null) return null;
   if (isError) return null; // quiet no-op — this is a bonus, not core trip data

@@ -1,9 +1,11 @@
 import { webkit, devices } from 'playwright';
+import { seedUnlocked } from './unlock.mjs';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173/';
 const fail=[];
 const b = await webkit.launch();
 const ctx = await b.newContext({ ...devices['iPhone 13'], viewport:{width:375,height:667}, isMobile:true, hasTouch:true });
+await seedUnlocked(ctx);
 const page = await ctx.newPage();
 await page.route('**://*.tile.openstreetmap.org/**', r=>r.abort());
 await page.goto(BASE,{waitUntil:'networkidle'});

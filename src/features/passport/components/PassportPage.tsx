@@ -1,8 +1,10 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Printer } from 'lucide-react';
 import { useTrips, computeTripStats } from '../../../services/notionAdapter';
 import { PassportBook } from './PassportBook';
 import { PassportPrintSheets } from './PassportPrintSheets';
+import { SharePassportButton } from './SharePassportButton';
+import { SharePassportCard } from './SharePassportCard';
 import { buildPassportPages } from '../utils/buildPassportPages';
 
 /** Scopes the passport's print rules to this tab's button, so printing from the
@@ -38,6 +40,8 @@ function removeLandscapePage() {
  * is the complete record or it isn't a passport.
  */
 export function PassportPage() {
+  // Points at the flat SharePassportCard, not the book — see that file for why.
+  const shareRef = useRef<HTMLDivElement>(null);
   const { data, isLoading, isError } = useTrips();
   const trips = useMemo(() => data ?? [], [data]);
   const stats = useMemo(() => computeTripStats(trips), [trips]);
@@ -87,16 +91,19 @@ export function PassportPage() {
             </p>
           )}
         </div>
-        <button
-          type="button"
-          onClick={print}
-          disabled={isLoading || isError}
-          aria-label="Print the passport"
-          title="Print the passport — or Save as PDF from the print dialog"
-          className="no-print flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate/20 bg-surface/50 text-slate/70 transition-colors hover:border-slate/40 hover:bg-surface/80 disabled:cursor-not-allowed disabled:opacity-35 max-sm:h-11 max-sm:w-11"
-        >
-          <Printer size={15} />
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          {!isLoading && !isError && <SharePassportButton targetRef={shareRef} />}
+          <button
+            type="button"
+            onClick={print}
+            disabled={isLoading || isError}
+            aria-label="Print the passport"
+            title="Print the passport — or Save as PDF from the print dialog"
+            className="no-print flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate/20 bg-surface/50 text-slate/70 transition-colors hover:border-slate/40 hover:bg-surface/80 disabled:cursor-not-allowed disabled:opacity-35 max-sm:h-11 max-sm:w-11"
+          >
+            <Printer size={15} />
+          </button>
+        </div>
       </div>
 
       {isLoading && (
@@ -115,6 +122,7 @@ export function PassportPage() {
             <PassportBook pages={pages} />
           </div>
           <PassportPrintSheets pages={pages} />
+          <SharePassportCard pages={pages} nodeRef={shareRef} />
         </>
       )}
     </section>

@@ -1,12 +1,21 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { storeWriteToken } from '../lib/writeToken';
 
 /**
- * Client-side-only gate: a deterrent against casual visitors, not real
- * access control. GitHub Pages is static hosting — there's no server to
- * check a password against, and the underlying data file stays fetchable
- * directly by anyone who has its URL regardless of this gate. Don't put
- * anything here you'd be upset to see leaked; use a real auth layer
- * (e.g. Cloudflare Access in front of the site) if that matters.
+ * Client-side gate. For READS it remains a deterrent rather than access
+ * control: the app is a static bundle and /api/notion/travel-tracker will
+ * answer anyone who requests it, gate or no gate.
+ *
+ * For WRITES it is load-bearing. On unlock the password is kept (see
+ * lib/writeToken.ts) and sent with every edit, and api/notion/trip.ts rejects
+ * anything that doesn't match TT_WRITE_SECRET. So this password is the only
+ * thing standing between the internet and your Notion database — set it to
+ * something real, and keep VITE_SITE_PASSWORD_HASH and TT_WRITE_SECRET in sync
+ * (the hash gates the UI, the plaintext gates the API).
+ *
+ * If read privacy ever matters as much as write safety, put the whole
+ * deployment behind real auth (Vercel deployment protection, Cloudflare Access)
+ * rather than growing this component.
  */
 
 const STORAGE_KEY = 'travel-tracker-unlocked';
@@ -33,6 +42,8 @@ export function PasswordGate({ children }: { children: ReactNode }) {
     const hash = await sha256Hex(password);
     if (hash === EXPECTED_HASH) {
       localStorage.setItem(STORAGE_KEY, 'true');
+      // Kept for the write endpoint — see lib/writeToken.ts for the trade this makes.
+      storeWriteToken(password);
       setUnlocked(true);
     } else {
       setError(true);
