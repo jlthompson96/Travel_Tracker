@@ -1,4 +1,5 @@
 import { webkit, devices } from 'playwright';
+import { seedUnlocked } from './unlock.mjs';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173/';
 const OUT = process.env.AUDIT_OUT ?? new URL('./artifacts/', import.meta.url).pathname;
@@ -41,17 +42,18 @@ const ctx = await browser.newContext({
   isMobile: true,
   hasTouch: true,
 });
+await seedUnlocked(ctx);
 const page = await ctx.newPage();
 page.on('pageerror', (e) => fail.push(`PAGE ERROR: ${e.message}`));
 await page.route('**://*.tile.openstreetmap.org/**', (r) => r.abort());
 await page.goto(BASE, { waitUntil: 'networkidle' });
 
 const go = async (label) => {
-  const bar = page.locator('nav[aria-label="Main"] button', { hasText: new RegExp(`^${label}$`, 'i') });
+  const bar = page.locator('nav[aria-label="Main"] :is(a,button)', { hasText: new RegExp(`^${label}$`, 'i') });
   if (await bar.count()) { await bar.first().click(); }
   else {
-    await page.locator('nav[aria-label="Main"] button', { hasText: /^More$/i }).click();
-    await page.getByRole('dialog', { name: 'More sections' }).getByRole('button', { name: new RegExp(label, 'i') }).first().click();
+    await page.locator('nav[aria-label="Main"] :is(a,button)', { hasText: /^More$/i }).click();
+    await page.getByRole('dialog', { name: 'More sections' }).getByRole('link', { name: new RegExp(label, 'i') }).first().click();
   }
   await page.waitForTimeout(700);
 };
@@ -128,11 +130,11 @@ const dctx = await browser.newContext({ viewport: { width: 1280, height: 900 } }
 const dpage = await dctx.newPage();
 await dpage.route('**://*.tile.openstreetmap.org/**', (r) => r.abort());
 await dpage.goto(BASE, { waitUntil: 'networkidle' });
-await dpage.getByRole('button', { name: /^Map$/i }).first().click();
+await dpage.getByRole('link', { name: /^Map$/i }).first().click();
 await dpage.waitForTimeout(1200);
 if (await dpage.locator('button', { hasText: /tap to explore/i }).count()) fail.push('[desktop] map touch gate leaked onto desktop');
 else console.log('  ok  no touch gate on desktop');
-await dpage.getByRole('button', { name: /^Plan$/i }).first().click();
+await dpage.getByRole('link', { name: /^Plan$/i }).first().click();
 await dpage.waitForTimeout(700);
 const grips = await dpage.locator('button[aria-label^="Reorder"]').count();
 const arrows = await dpage.locator('button[aria-label*="Move "]').first().isVisible().catch(() => false);

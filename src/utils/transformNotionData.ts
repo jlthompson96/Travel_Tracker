@@ -94,12 +94,23 @@ export function parseLocation(prop: NotionPlaceProperty | undefined): TripLocati
   };
 }
 
+/**
+ * Build-time mirroring (scripts/fetch-notion-data.mjs) rewrites Notion-hosted
+ * photos to paths relative to the site root, e.g. "photos/<id>.jpg". Live
+ * Notion responses (the dev proxy) and `external` files stay absolute, so
+ * only the relative ones need BASE_URL in front.
+ */
+function resolvePhotoUrl(url: string): string {
+  if (!url || /^(https?:)?\/\//.test(url) || url.startsWith('data:')) return url;
+  return `${import.meta.env.BASE_URL}${url.replace(/^\//, '')}`;
+}
+
 export function parsePhotos(prop: NotionFilesProperty | undefined): TripPhoto[] {
   if (!prop?.files?.length) return [];
   return prop.files.map((f, i) => ({
     id: `${f.name}-${i}`,
     name: f.name,
-    url: f.type === 'file' ? f.file?.url ?? '' : f.external?.url ?? '',
+    url: resolvePhotoUrl(f.type === 'file' ? f.file?.url ?? '' : f.external?.url ?? ''),
     expiryTime: f.type === 'file' ? f.file?.expiry_time ?? null : null,
   })).filter((p) => p.url);
 }

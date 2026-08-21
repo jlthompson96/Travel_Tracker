@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { SECONDARY_TABS, type Tab } from '../navigation/tabs';
@@ -7,7 +8,6 @@ import { SECONDARY_TABS, type Tab } from '../navigation/tabs';
 interface MoreSheetProps {
   open: boolean;
   active: Tab;
-  onSelect: (tab: Tab) => void;
   onClose: () => void;
 }
 
@@ -18,7 +18,7 @@ interface MoreSheetProps {
  * Gets a real focus trap in a later pass; for now Escape and the backdrop
  * close it, matching TripDetailModal's keyboard behavior.
  */
-export function MoreSheet({ open, active, onSelect, onClose }: MoreSheetProps) {
+export function MoreSheet({ open, active, onClose }: MoreSheetProps) {
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
@@ -59,16 +59,13 @@ export function MoreSheet({ open, active, onSelect, onClose }: MoreSheetProps) {
             </div>
 
             <ul className="flex flex-col px-2 pb-3">
-              {SECONDARY_TABS.map(({ id, label, icon: Icon }) => {
+              {SECONDARY_TABS.map(({ id, label, path, icon: Icon }) => {
                 const isActive = id === active;
                 return (
                   <li key={id}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onSelect(id);
-                        onClose();
-                      }}
+                    <Link
+                      to={path}
+                      onClick={onClose}
                       aria-current={isActive ? 'page' : undefined}
                       className={`flex min-h-[56px] w-full items-center gap-3 rounded-lg px-4 text-left font-mono text-sm uppercase tracking-wide transition-colors ${
                         isActive ? 'bg-ink-navy text-cream' : 'text-slate hover:bg-surface'
@@ -77,7 +74,7 @@ export function MoreSheet({ open, active, onSelect, onClose }: MoreSheetProps) {
                       <Icon size={18} className="shrink-0" />
                       <span className="flex-1">{label}</span>
                       {isActive && <Check size={16} className="shrink-0" />}
-                    </button>
+                    </Link>
                   </li>
                 );
               })}

@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { PhotoImage } from '../../../../components/PhotoImage';
 import { useFocusTrap } from '../../../../hooks/useFocusTrap';
 import type { TripPhoto } from '../../../../types/travel';
 
@@ -83,10 +84,12 @@ export function PhotoLightbox({ photos, index, onClose, onNavigate }: PhotoLight
           transition={{ duration: 0.15 }}
           className="flex max-h-full max-w-full flex-col items-center gap-3"
         >
-          <img
-            src={photo.url}
+          <PhotoImage
+            photo={photo}
             alt={photo.name || 'Trip photo'}
+            loading="eager"
             className="max-h-[80vh] max-w-full rounded object-contain shadow-2xl"
+            fallbackClassName="h-64 w-64 border border-white/15"
           />
           <div className="flex items-center gap-3 font-mono text-xs text-white/70">
             {photo.name && <span>{photo.name}</span>}

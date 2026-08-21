@@ -80,7 +80,7 @@ async function scenario(theme, backdrop) {
   await page.goto(BASE, { waitUntil: 'networkidle' });
 
   if (backdrop === 'map') {
-    await page.locator('nav[aria-label="Main"] button', { hasText: /^Map$/i }).click();
+    await page.locator('nav[aria-label="Main"] :is(a,button)', { hasText: /^Map$/i }).click();
     await page.waitForTimeout(3500); // let real OSM tiles paint under the bar
   } else if (backdrop === 'photo') {
     const cards = page.locator('[data-trip-card]');

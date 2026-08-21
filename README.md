@@ -41,7 +41,9 @@ defensively across all four possible result types instead of assuming one.
 
 ## Tabs
 
-The app is a single-page shell (`App.tsx`) with six tabs, all reading from
+Eight tabs, each a real route (`react-router-dom`, paths in
+`navigation/tabs.tsx`) so back/forward and shared links work. `?trip=<id>`
+stays a search param, so it layers over whichever tab you're on. All read from
 the same `useTrips()` / `useFilteredTrips()` data:
 
 - **Dashboard** — filterable trip card grid (`TripDashboard.tsx`), the
@@ -63,12 +65,28 @@ the same `useTrips()` / `useFilteredTrips()` data:
   farthest-destinations leaderboard, and a continent/country coverage
   breakdown. Distances are straight-line (haversine, see `utils/geo.ts`),
   not actual road/flight miles.
+- **Insights** (`InsightsPage.tsx`) — the aggregates `computeTripStats()`
+  always returned but nothing rendered: trips by year, trip types, trips by
+  country, the star-rating breakdown, and the countries you've put on the list
+  but not reached. Charts come from `stats/charts.tsx`, shared with Miles
+  Traveled so there's one bar-chart implementation.
 - **Plan** (`features/planning/`) — the Bucket List as a working plan:
   drag-to-rank ordering, a "when" timeframe chip per trip, and a "Next
   adventure" picker that either picks at random or surfaces the closest
-  unvisited destination. **Ranking and timeframes live in `localStorage`
-  only** (`useBucketListPlan.ts`) — Notion has no field for either and the
-  app has no write path back, so none of it syncs.
+  unvisited destination. Plus two planners:
+  - **Best time to go** (`SeasonsPlanner.tsx`) — pick a month, get your
+    bucket list ranked by how good that month is there, scored with the same
+    `scoreMonth()` the trip modal's weather chart uses (`utils/weather.ts`),
+    against the precomputed `data/climate.json`.
+  - **Trips you could combine** (`TripClusters.tsx`) — single-link clustering
+    at a 150mi radius (`utils/clusterTrips.ts`), so five separate Utah/Arizona
+    park entries read as one road trip. Deliberately *not*
+    `groupTripsByLocation`, which rounds coordinates to ~111m for a different
+    job entirely.
+
+  **Ranking and timeframes live in `localStorage` only**
+  (`useBucketListPlan.ts`) — Notion has no field for either, so they don't
+  sync even though the app can now write.
 - **Compare** (`features/compare/`) — search-and-add up to three trips and
   see them side by side (status, country, trip type, dates, rating,
   priority, distance from home, notes). Aimed at weighing Bucket List
@@ -76,10 +94,15 @@ the same `useTrips()` / `useFilteredTrips()` data:
 
 ### Cross-cutting features
 
-- **Filtering & sorting** (`useFilteredTrips.ts`, `FilterPills.tsx`,
-  `SortControl.tsx`) — Status/Region are single-select; Country and Trip type
+- **Filtering & sorting** (`useFilteredTrips.ts`, `filters/FilterBar.tsx`,
+  `filters/FilterSheet.tsx`, `filters/SortMenu.tsx`) — Status/Region are single-select; Country and Trip type
   are **multi-select** (empty array means "All"). Sort by date, distance from
   home, rating, priority, or A–Z.
+- **Editing** (`TripDetails/TripEditor.tsx`) — rate a trip, set its priority,
+  write notes, and **Mark visited** (flips Bucket List → Been There with a
+  date, which is what moves a trip into the Timeline and Passport). Writes go
+  through `useUpdateTrip()`, which updates the cache optimistically and rolls
+  back on failure. Renders only when the site is unlocked.
 - **Trip detail modal** (`TripDetails/`) — adds a photo lightbox with
   keyboard/arrow navigation (`PhotoLightbox.tsx`), a "best time to visit"
   climate chart (`WeatherWidget.tsx`, backed by the free keyless Open-Meteo
@@ -92,15 +115,43 @@ the same `useTrips()` / `useFilteredTrips()` data:
   chrome (anything `.no-print`) and always prints the light palette; a
   manifest + service worker (`public/manifest.webmanifest`, `public/sw.js`)
   make the app installable and usable offline.
+- **Share the passport** (`SharePassportButton.tsx`) — renders the passport to
+  a PNG and hands it to the OS share sheet, falling back to a download. It
+  rasterizes a purpose-built flat node (`SharePassportCard.tsx`), *not* the
+  interactive book: each leaf carries `rotateY(180deg)` with
+  `backface-visibility: hidden`, and html-to-image reproduces the transform
+  but not the culling, so capturing the book comes out mirror-imaged.
 
-## Architecture note: MCP vs. the deployed app
+## Architecture: deployment and data flow
 
-MCP (what inspected this schema) only runs inside a Claude session — a
-browser app can't call it, and it can't call the Notion API directly either
-(Notion requires a secret token and blocks browser CORS). `api/notion/travel-tracker.ts`
-is an example serverless route that holds the token server-side and proxies
-the query; `services/notionAdapter.ts` fetches from that route. Point
-`VITE_NOTION_PROXY_URL` at wherever you deploy it.
+Deployed on **Vercel**. A browser can't call the Notion API directly (it
+requires a secret token and blocks browser CORS), so two serverless routes
+hold the token server-side:
+
+- `api/notion/travel-tracker.ts` — `GET`, proxies the data-source query.
+  `services/notionAdapter.ts` reads from it on every load, so **trip data is
+  live**; there is no build-time snapshot and no refresh cron.
+- `api/notion/trip.ts` — `PATCH`, the only write path. Takes a domain-level
+  patch (status, rating, priority, notes, date) and builds the Notion property
+  JSON itself, so a caller can't reach a property this file doesn't name.
+  Guarded by `TT_WRITE_SECRET`.
+
+`vite.config.ts` mounts both handlers as middleware in `dev` **and**
+`preview`, so `/api/notion/…` is the same URL everywhere.
+
+Two build steps run before `vite build` (see `package.json`):
+
+- `scripts/mirror-photos.mjs` — Notion's photo URLs are pre-signed S3 links
+  that expire in an hour and differ on every query, so nothing can cache them.
+  This copies each photo to a stable `/photos/<block-id>.<ext>`, resized to a
+  1600px long edge (3.1MB → 0.6MB on the current set), and the GET route
+  rewrites responses to point at them. The filename rule is shared with
+  `src/utils/photoNaming.ts` and the two **must** agree.
+- `scripts/fetch-climate.mjs` — precomputes monthly climate per location into
+  `public/data/climate.json`, so the Seasons planner can score the whole
+  bucket list without firing ~50 Open-Meteo requests on tab open.
+
+Environment: `NOTION_TOKEN`, `TT_WRITE_SECRET`, `VITE_SITE_PASSWORD_HASH`.
 
 ## File hierarchy
 
@@ -134,8 +185,9 @@ travel-tracker/
 │   │   │   ├── components/
 │   │   │   │   ├── TripDashboard.tsx
 │   │   │   │   ├── TripCard.tsx
-│   │   │   │   ├── FilterPills.tsx  # also exports the shared <Pill>
-│   │   │   │   ├── SortControl.tsx
+│   │   │   │   ├── filters/FilterBar.tsx   # compact bar + active chips
+│   │   │   │   ├── filters/FilterSheet.tsx  # modal sheet, live result count
+│   │   │   │   ├── filters/SortMenu.tsx
 │   │   │   │   ├── SearchBar.tsx
 │   │   │   │   ├── PassportStamp.tsx      # shared signature element
 │   │   │   │   └── TripDetails/
@@ -186,11 +238,15 @@ travel-tracker/
 ## Offline / PWA
 
 `public/sw.js` is hand-rolled (no build plugin) and deliberately **not**
-cache-first across the board: the site redeploys weekly via cron purely to
-refresh Notion data, so a naive cache would serve months-old trips. It uses
-network-first for navigations and the trip JSON (fresh wins, cache is the
-offline fallback) and cache-first only for Vite's content-hashed
-`/assets/` files, whose bytes never change for a given URL.
+cache-first across the board: trip data is live from Notion and editable
+in-app, so a naive cache would serve a rating you changed a minute ago. It uses
+network-first for navigations and the trip API (fresh wins, cache is the
+offline fallback) and cache-first for Vite's content-hashed `/assets/` files
+and the mirrored `/photos/`, whose bytes never change for a given URL.
+
+Install-time it precaches the app shell, one trip-API response,
+`data/climate.json`, and every photo listed in `photos/manifest.json` — so a
+first-ever offline load has trips, weather and images.
 
 Two non-obvious details, both learned by actually testing offline:
 
@@ -251,18 +307,29 @@ dark mode for the equivalent effect.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # type-checks (tsc -b) then builds — verified passing
+npm run dev            # http://localhost:5173
+npm run build          # tsc -b, mirror photos, fetch climate, then vite build
+npm test               # vitest over the pure utils
+npm run lint           # eslint
+npm run audit:mobile   # Playwright WebKit checks against the build
 ```
 
-Without a live `VITE_NOTION_PROXY_URL` backend deployed, `TripDashboard`
-will show its error state — that's expected; wire up `api/notion/travel-tracker.ts`
-(or your own equivalent) to see real data.
+`npm run audit:mobile` boots `vite preview` and runs five checks (overflow,
+touch targets, focus, contrast, glass) at iPhone widths in real WebKit. It
+seeds an unlocked session (`scripts/mobile-audit/unlock.mjs`) so the in-modal
+editing controls are covered too. Keep it green.
+
+`vite.config.ts` serves `api/notion/*` in both `dev` and `preview`, so a
+`NOTION_TOKEN` in `.env` is all you need for real data locally.
 
 `PasswordGate` (wraps the whole app in `main.tsx`) only activates if
-`VITE_SITE_PASSWORD_HASH` is set — leave it unset for local dev. It's a
-client-side deterrent for the static GitHub Pages deploy, not real access
-control (see the file's own header comment).
+`VITE_SITE_PASSWORD_HASH` is set — leave it unset for local dev. For **reads**
+it stays a deterrent rather than access control. For **writes** it is
+load-bearing: on unlock the password is kept and sent as `x-tt-token`, and
+`api/notion/trip.ts` rejects anything that doesn't match `TT_WRITE_SECRET`.
+Keep the two in sync (the hash gates the UI, the plaintext gates the API), and
+note that anyone who can unlock the site can edit it — there are no per-user
+identities.
 
 The service worker registers **in production builds only** — in dev it would
 shadow Vite's HMR and the Notion proxy. To exercise offline behavior locally:

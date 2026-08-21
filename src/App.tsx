@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Compass, Droplet, Moon, Sun } from 'lucide-react';
 import { useTheme } from './hooks/useTheme';
 import { useReduceTransparency } from './hooks/useReduceTransparency';
 import { useMediaQuery } from './hooks/useMediaQuery';
 import { BottomTabBar } from './components/BottomTabBar';
-import { TABS, type Tab } from './navigation/tabs';
+import { TABS, tabForPath } from './navigation/tabs';
+import { InsightsPage } from './features/stats/components/InsightsPage';
 import { TripDashboard } from './features/trips/components/TripDashboard';
 import { TravelMap } from './features/map/components/TravelMap';
 import { MapPage } from './features/map/components/MapPage';
@@ -28,20 +30,19 @@ function useDeepLinkedTripId(): string | null {
 
 function TabButton({
   active,
-  onClick,
+  to,
   icon,
   children,
 }: {
   active: boolean;
-  onClick: () => void;
+  to: string;
   icon: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
+    <Link
+      to={to}
+      aria-current={active ? 'page' : undefined}
       className={`relative flex items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-2 font-mono text-xs uppercase tracking-wide transition-colors duration-150 ${
         active
           ? 'border-ink-navy text-cream'
@@ -59,13 +60,15 @@ function TabButton({
         {icon}
         {children}
       </span>
-    </button>
+    </Link>
   );
 }
 
 export default function App() {
   const filtering = useFilteredTrips();
-  const [tab, setTab] = useState<Tab>('dashboard');
+  // Tabs are routes now, so the active one is derived from the URL rather than
+  // held in state — that's what makes back/forward and shared links work.
+  const tab = tabForPath(useLocation().pathname);
   const { theme, toggleTheme } = useTheme();
   const { reduced, toggleReduced } = useReduceTransparency();
   const isDesktop = useMediaQuery('(min-width: 640px)');
@@ -145,56 +148,59 @@ export default function App() {
         * `sm:hidden` would duplicate the nav landmark and every tab button in
         * the accessibility tree, and would register `layoutId` twice. */}
       {isDesktop ? (
-        <nav className="px-edge no-print mx-auto flex max-w-6xl flex-wrap gap-2 pt-6">
-          {TABS.map(({ id, label, icon: Icon }) => (
-            <TabButton key={id} active={tab === id} onClick={() => setTab(id)} icon={<Icon size={14} />}>
+        <nav aria-label="Main" className="px-edge no-print mx-auto flex max-w-6xl flex-wrap gap-2 pt-6">
+          {TABS.map(({ id, label, path, icon: Icon }) => (
+            <TabButton key={id} active={tab === id} to={path} icon={<Icon size={14} />}>
               {label}
             </TabButton>
           ))}
         </nav>
       ) : (
-        <BottomTabBar tab={tab} onChange={setTab} />
+        <BottomTabBar tab={tab} />
       )}
 
       {/* The extra bottom padding clears the fixed tab bar so the last card in
         * any tab isn't trapped underneath it. */}
       <main className="px-edge mx-auto flex max-w-6xl flex-col gap-10 py-10 max-sm:pb-[calc(var(--tabbar-total)_+_2.5rem)]">
-        {tab === 'dashboard' ? (
-          <>
-            <TripStats />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <TripStats />
 
-            <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
-              <TripDashboard {...filtering} />
-              <aside className="flex flex-col gap-10">
-                <section>
-                  <h2 className="mb-3 font-display text-lg font-semibold text-ink">Map</h2>
-                  <TravelMap
-                    data={filtering.filteredTrips}
-                    isLoading={filtering.isLoading}
-                    isError={filtering.isError}
-                    filters={filtering.filters}
-                  />
-                </section>
-                <section>
-                  <h2 className="mb-3 font-display text-lg font-semibold text-ink">Timeline</h2>
-                  <TripTimeline />
-                </section>
-              </aside>
-            </div>
-          </>
-        ) : tab === 'map' ? (
-          <MapPage {...filtering} />
-        ) : tab === 'timeline' ? (
-          <TimelinePage {...filtering} />
-        ) : tab === 'passport' ? (
-          <PassportPage />
-        ) : tab === 'miles' ? (
-          <MilesPage />
-        ) : tab === 'plan' ? (
-          <PlanPage />
-        ) : (
-          <ComparePage />
-        )}
+                <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
+                  <TripDashboard {...filtering} />
+                  <aside className="flex flex-col gap-10">
+                    <section>
+                      <h2 className="mb-3 font-display text-lg font-semibold text-ink">Map</h2>
+                      <TravelMap
+                        data={filtering.filteredTrips}
+                        isLoading={filtering.isLoading}
+                        isError={filtering.isError}
+                        filters={filtering.filters}
+                      />
+                    </section>
+                    <section>
+                      <h2 className="mb-3 font-display text-lg font-semibold text-ink">Timeline</h2>
+                      <TripTimeline />
+                    </section>
+                  </aside>
+                </div>
+              </>
+            }
+          />
+          <Route path="/map" element={<MapPage {...filtering} />} />
+          <Route path="/timeline" element={<TimelinePage {...filtering} />} />
+          <Route path="/passport" element={<PassportPage />} />
+          <Route path="/miles" element={<MilesPage />} />
+          <Route path="/insights" element={<InsightsPage />} />
+          <Route path="/plan" element={<PlanPage />} />
+          <Route path="/compare" element={<ComparePage />} />
+          {/* Stale bookmarks land on the dashboard rather than a blank page.
+            * `replace` so back doesn't bounce straight into the dead URL. */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
       {deepLinkedTrip && (

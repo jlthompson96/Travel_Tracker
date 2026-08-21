@@ -5,8 +5,13 @@ export type Region = MapRegion;
 
 /** Single source of truth for country -> region/continent, covering every value in
  * COUNTRY_OPTIONS. Previously this list was duplicated (and out of sync) across
- * useFilteredTrips.ts and TravelMap.tsx. */
-export const COUNTRY_REGIONS: Record<Country, Region> = {
+ * useFilteredTrips.ts and TravelMap.tsx.
+ *
+ * Deliberately typed as a partial lookup: `Country` is now an open string (data
+ * is live from Notion, so a country can appear here that this map has never
+ * heard of). An unmapped country falls out of region filtering rather than
+ * crashing — see regionForCountry. Add new entries here when they show up. */
+export const COUNTRY_REGIONS: Partial<Record<Country, Region>> = {
   USA: 'North America',
   Mexico: 'North America',
   'Costa Rica': 'North America',
