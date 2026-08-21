@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && node scripts/mirror-photos.mjs && node scripts/fetch-climate.mjs && vite build",
+    "build": "tsc -b tsconfig.json api/tsconfig.json && node scripts/mirror-photos.mjs && node scripts/fetch-climate.mjs && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint .",
@@ -26,6 +26,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/leaflet": "^1.9.12",
+    "@types/node": "^22.20.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
