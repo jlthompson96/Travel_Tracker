@@ -1,10 +1,64 @@
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="Travel Tracker — every trip in your Notion database as a passport, a map and a timeline" width="100%">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-18-B98B3E?style=for-the-badge&logo=react&logoColor=white&labelColor=14232E" alt="React 18">
+  <img src="https://img.shields.io/badge/TypeScript-5-B98B3E?style=for-the-badge&logo=typescript&logoColor=white&labelColor=14232E" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Vite-5-B98B3E?style=for-the-badge&logo=vite&logoColor=white&labelColor=14232E" alt="Vite 5">
+  <img src="https://img.shields.io/badge/Tailwind-3-1E6E76?style=for-the-badge&logo=tailwindcss&logoColor=white&labelColor=14232E" alt="Tailwind CSS 3">
+  <img src="https://img.shields.io/badge/Leaflet-maps-1E6E76?style=for-the-badge&logo=leaflet&logoColor=white&labelColor=14232E" alt="Leaflet">
+  <img src="https://img.shields.io/badge/Notion-data-A6392B?style=for-the-badge&logo=notion&logoColor=white&labelColor=14232E" alt="Notion">
+  <img src="https://img.shields.io/badge/Vercel-deployed-A6392B?style=for-the-badge&logo=vercel&logoColor=white&labelColor=14232E" alt="Vercel">
+  <img src="https://img.shields.io/badge/PWA-offline-A6392B?style=for-the-badge&labelColor=14232E" alt="Installable PWA">
+  <img src="https://img.shields.io/badge/license-MIT-A6392B?style=for-the-badge&labelColor=14232E" alt="MIT license">
+</p>
+
 # Travel Tracker
 
-A modular React dashboard built directly against the live schema of your
-Notion **Travel Tracker** database (data source id
+Every trip you've taken, and every one you still want to, pulled live from a Notion database and laid out as a passport, a map and a timeline. Rate and annotate trips, stamp a Bucket List destination as visited, count the miles from home, and plan what's next. It installs as a PWA and keeps working offline.
+
+<p align="center">
+  <img src="docs/assets/tabs.svg" alt="Travel Tracker tabs: Dashboard, Map, Timeline, Passport, Miles Traveled, Insights, Plan and Compare" width="100%">
+</p>
+
+## At a glance
+
+```mermaid
+flowchart LR
+    N[("🗂️ Notion<br/>Travel Tracker database")] -- "Destination · Country · Status<br/>Rating · Dates · Location · Photos" --> A["Vercel functions<br/>/api/notion/*"]
+    A --> Q["useTrips()<br/>TanStack Query"]
+    Q --> T1["🧳 Dashboard"]
+    Q --> T2["🗺️ Map"]
+    Q --> T3["🕰️ Timeline"]
+    Q --> T4["🛂 Passport"]
+    Q --> T5["✈️ Miles"]
+    Q --> T6["📊 Insights"]
+    Q --> T7["📝 Plan"]
+    Q --> T8["⚖️ Compare"]
+```
+
+A trip's life, as the app sees it:
+
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> BucketList: Added in Notion
+    BucketList: Bucket List
+    BucketList --> BucketList: Rank, pick a month, compare
+    BucketList --> BeenThere: Mark visited (sets the date)
+    BeenThere: Been There
+    BeenThere --> BeenThere: Rate, add notes
+    BeenThere --> [*]: Passport, Timeline and Miles
+```
+
+## About the data
+
+The dashboard is built directly against the live schema of the Notion
+**Travel Tracker** database (data source id
 `1b1d8fd9-c723-4201-b1fc-5968d59e658a`), inspected via MCP on 2026-07-22.
 
-## Schema map (as retrieved via MCP)
+### Schema map (as retrieved via MCP)
 
 | Notion property | Type | Options / shape | Maps to |
 |---|---|---|---|
@@ -57,6 +111,9 @@ the same `useTrips()` / `useFilteredTrips()` data:
   photo thumbnails, trip-type tags, and rating, click-through to the same
   detail modal. Multiple visits to one place simply appear as separate
   entries in their own years.
+- **Passport** (`features/passport/`) — every "Been There" trip as a stamp in
+  a flip-through passport book (`PassportBook.tsx`). It prints as landscape
+  sheets and can be shared as an image (see *Share the passport* below).
 - **Miles Traveled** (`MilesPage.tsx`) — an infographic built around
   `HOME_LOCATION` (hardcoded to Fort Mill, SC in `notionAdapter.ts` — there's
   no home-base property in Notion): a hero total of round-trip miles to
@@ -152,6 +209,30 @@ Two build steps run before `vite build` (see `package.json`):
   bucket list without firing ~50 Open-Meteo requests on tab open.
 
 Environment: `NOTION_TOKEN`, `TT_WRITE_SECRET`, `VITE_SITE_PASSWORD_HASH`.
+
+```mermaid
+flowchart LR
+    subgraph Browser["🌍 Browser (PWA)"]
+        UI["React app"]
+        SW["Service worker<br/>network-first data · cache-first assets"]
+        LS[("localStorage<br/>bucket-list plan · theme")]
+    end
+    subgraph Vercel["▲ Vercel"]
+        GET["GET /api/notion/travel-tracker"]
+        PATCH["PATCH /api/notion/trip<br/>x-tt-token = TT_WRITE_SECRET"]
+        ST["Static: /photos · data/climate.json"]
+    end
+    UI --> SW
+    SW --> GET & ST
+    UI -- "edits (when unlocked)" --> PATCH
+    UI <--> LS
+    GET & PATCH -- "NOTION_TOKEN" --> NT[("Notion API")]
+    UI -- "weather widget" --> OM["Open-Meteo archive"]
+    subgraph Build["npm run build"]
+        MP["mirror-photos.mjs<br/>stable 1600px photos"] --> ST
+        FC["fetch-climate.mjs<br/>monthly climate"] --> ST
+    end
+```
 
 ## File hierarchy
 
@@ -265,6 +346,10 @@ dropped on activate.
 
 ## Design notes
 
+<p align="center">
+  <img src="docs/assets/palette.svg" alt="Travel Tracker palette: fixed ink-navy, cream and brass, plus theme-aware light and dark tokens" width="100%">
+</p>
+
 Palette and type are drawn from the subject itself — the database already
 has a `Passport Stamp` formula and a "🛂 Passport" gallery view — so the UI
 leans into a passport/ticket-stub identity rather than a generic travel-blue
@@ -337,3 +422,7 @@ shadow Vite's HMR and the Notion proxy. To exercise offline behavior locally:
 ```bash
 npm run build && npx vite preview   # http://localhost:4173
 ```
+
+## License
+
+[MIT](LICENSE) © 2026 Joey Thompson
