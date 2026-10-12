@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320" role="img" aria-label="Travel Tracker — every trip in your Notion database as a passport, a map and a timeline">
+  <style>
+    .route { stroke-dasharray: 2 9; animation: dash 1.6s linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -11 } }
+    .thud { animation: thud 7s ease-out infinite; transform-origin: 0 0; }
+    .thud2 { animation-delay: -3.5s }
+    @keyframes thud { 0% { transform: scale(1.5); opacity: 0 } 6% { transform: scale(.94); opacity: .95 } 10% { transform: scale(1) } 85% { opacity: .95 } 100% { opacity: .95 } }
+    .pin { animation: pin 2.4s ease-in-out infinite; transform-origin: 1095px 112px; }
+    @keyframes pin { 0%,100% { transform: scale(1); opacity: .6 } 50% { transform: scale(1.8); opacity: 0 } }
+    @media (prefers-reduced-motion: reduce) { .route, .thud, .pin { animation: none } .plane { display: none } }
+  </style>
+  <defs>
+    <pattern id="paper" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="0.6" fill="#14232E" fill-opacity="0.05"/></pattern>
+    <pattern id="lat" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0H0V60" fill="none" stroke="#14232E" stroke-opacity="0.06"/></pattern>
+    <clipPath id="frame"><rect width="1200" height="320" rx="14"/></clipPath>
+  </defs>
+  <g clip-path="url(#frame)">
+    <rect width="1200" height="320" fill="#14232E"/>
+    <!-- ticket stub -->
+    <rect x="24" y="24" width="1152" height="272" rx="10" fill="#F7F2E7"/>
+    <rect x="24" y="24" width="1152" height="272" rx="10" fill="url(#lat)"/>
+    <rect x="24" y="24" width="1152" height="272" rx="10" fill="url(#paper)"/>
+    <line x1="660" y1="40" x2="660" y2="280" stroke="#14232E" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="6 6"/>
+    <circle cx="660" cy="24" r="12" fill="#14232E"/><circle cx="660" cy="296" r="12" fill="#14232E"/>
+    <rect x="24" y="24" width="1152" height="10" fill="#B98B3E" opacity="0.9"/>
+    <text x="70" y="88" font-family="'IBM Plex Mono', Consolas, Menlo, monospace" font-size="12" letter-spacing="3" fill="#7A5A1E">BOARDING PASS · NOTION → VERCEL</text>
+    <text x="68" y="160" font-family="Fraunces, Georgia, 'Times New Roman', serif" font-size="64" font-weight="600" fill="#14232E">Travel <tspan font-style="italic" fill="#A6392B">Tracker</tspan></text>
+    <text x="70" y="200" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#33362E">Every trip you've taken, and every one you</text>
+    <text x="70" y="226" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="19" fill="#33362E">want to, as a passport, a map and a timeline.</text>
+    <text x="70" y="268" font-family="'IBM Plex Mono', Consolas, Menlo, monospace" font-size="11" letter-spacing="1.4" fill="#7A5A1E">TRIPS · MAP · TIMELINE · PASSPORT · MILES · INSIGHTS · PLAN · COMPARE</text>
+    <!-- route -->
+    <path class="route" d="M 720 252 Q 880 30 1095 112" fill="none" stroke="#14232E" stroke-opacity="0.6" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="720" cy="252" r="6" fill="#14232E"/><text x="700" y="276" font-family="'IBM Plex Mono', Consolas, Menlo, monospace" font-size="11" letter-spacing="1.5" fill="#33362E">HOME</text>
+    <circle class="pin" cx="1095" cy="112" r="8" fill="#1E6E76"/><circle cx="1095" cy="112" r="6" fill="#1E6E76"/>
+    <g class="plane"><path d="M -11 -2 L 4 -2 L 10 -9 L 13 -9 L 9 -2 L 14 -2 L 16 -5 L 18 -5 L 17 0 L 18 5 L 16 5 L 14 2 L 9 2 L 13 9 L 10 9 L 4 2 L -11 2 Q -13 0 -11 -2 Z" fill="#14232E"/>
+      <animateMotion dur="6s" repeatCount="indefinite" rotate="auto" path="M 720 252 Q 880 30 1095 112" keyPoints="0;1;1" keyTimes="0;0.8;1" calcMode="linear"/></g>
+    <g transform="translate(905,215) rotate(-12)"><g class="thud" opacity="0.92">
+      <circle r="44" fill="none" stroke="#A6392B" stroke-width="3" stroke-dasharray="9 2 4 3 12 2"/><line x1="48.00" y1="0.00" x2="53.00" y2="0.00" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="46.36" y1="12.42" x2="51.19" y2="13.72" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="41.57" y1="24.00" x2="45.90" y2="26.50" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="33.94" y1="33.94" x2="37.48" y2="37.48" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="24.00" y1="41.57" x2="26.50" y2="45.90" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="12.42" y1="46.36" x2="13.72" y2="51.19" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="0.00" y1="48.00" x2="0.00" y2="53.00" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-12.42" y1="46.36" x2="-13.72" y2="51.19" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-24.00" y1="41.57" x2="-26.50" y2="45.90" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-33.94" y1="33.94" x2="-37.48" y2="37.48" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-41.57" y1="24.00" x2="-45.90" y2="26.50" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-46.36" y1="12.42" x2="-51.19" y2="13.72" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-48.00" y1="0.00" x2="-53.00" y2="0.00" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-46.36" y1="-12.42" x2="-51.19" y2="-13.72" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-41.57" y1="-24.00" x2="-45.90" y2="-26.50" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-33.94" y1="-33.94" x2="-37.48" y2="-37.48" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-24.00" y1="-41.57" x2="-26.50" y2="-45.90" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-12.42" y1="-46.36" x2="-13.72" y2="-51.19" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="-0.00" y1="-48.00" x2="-0.00" y2="-53.00" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="12.42" y1="-46.36" x2="13.72" y2="-51.19" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="24.00" y1="-41.57" x2="26.50" y2="-45.90" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="33.94" y1="-33.94" x2="37.48" y2="-37.48" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="41.57" y1="-24.00" x2="45.90" y2="-26.50" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/><line x1="46.36" y1="-12.42" x2="51.19" y2="-13.72" stroke="#A6392B" stroke-width="2" stroke-linecap="round"/>
+      <circle r="34" fill="none" stroke="#A6392B" stroke-width="1.2"/>
+      <text y="-4" text-anchor="middle" font-family="'IBM Plex Mono', Consolas, Menlo, monospace" font-size="10" font-weight="700" letter-spacing="1.2" fill="#A6392B">BEEN THERE</text>
+      <text y="14" text-anchor="middle" font-family="'IBM Plex Mono', Consolas, Menlo, monospace" font-size="9.5" letter-spacing="1.5" fill="#A6392B">★★★★★</text>
+    </g></g>
+    <g transform="translate(1085,228) rotate(9)"><g class="thud thud2" opacity="0.92">
+      <circle r="38" fill="none" stroke="#1E6E76" stroke-width="3" stroke-dasharray="9 2 4 3 12 2"/><line x1="42.00" y1="0.00" x2="47.00" y2="0.00" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="40.57" y1="10.87" x2="45.40" y2="12.16" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="36.37" y1="21.00" x2="40.70" y2="23.50" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="29.70" y1="29.70" x2="33.23" y2="33.23" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="21.00" y1="36.37" x2="23.50" y2="40.70" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="10.87" y1="40.57" x2="12.16" y2="45.40" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="0.00" y1="42.00" x2="0.00" y2="47.00" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-10.87" y1="40.57" x2="-12.16" y2="45.40" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-21.00" y1="36.37" x2="-23.50" y2="40.70" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-29.70" y1="29.70" x2="-33.23" y2="33.23" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-36.37" y1="21.00" x2="-40.70" y2="23.50" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-40.57" y1="10.87" x2="-45.40" y2="12.16" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-42.00" y1="0.00" x2="-47.00" y2="0.00" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-40.57" y1="-10.87" x2="-45.40" y2="-12.16" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-36.37" y1="-21.00" x2="-40.70" y2="-23.50" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-29.70" y1="-29.70" x2="-33.23" y2="-33.23" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-21.00" y1="-36.37" x2="-23.50" y2="-40.70" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-10.87" y1="-40.57" x2="-12.16" y2="-45.40" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="-0.00" y1="-42.00" x2="-0.00" y2="-47.00" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="10.87" y1="-40.57" x2="12.16" y2="-45.40" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="21.00" y1="-36.37" x2="23.50" y2="-40.70" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="29.70" y1="-29.70" x2="33.23" y2="-33.23" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="36.37" y1="-21.00" x2="40.70" y2="-23.50" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/><line x1="40.57" y1="-10.87" x2="45.40" y2="-12.16" stroke="#1E6E76" stroke-width="2" stroke-linecap="round"/>
+      <circle r="28" fill="none" stroke="#1E6E76" stroke-width="1.2"/>
+      <text y="-4" text-anchor="middle" font-family="'IBM Plex Mono', Consolas, Menlo, monospace" font-size="10" font-weight="700" letter-spacing="1.2" fill="#1E6E76">BUCKET</text>
+      <text y="14" text-anchor="middle" font-family="'IBM Plex Mono', Consolas, Menlo, monospace" font-size="9.5" letter-spacing="1.5" fill="#1E6E76">LIST</text>
+    </g></g>
+
+    <rect x="1" y="1" width="1198" height="318" rx="13" fill="none" stroke="#B98B3E" stroke-opacity="0.4"/>
+  </g>
+</svg>
