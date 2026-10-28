@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CalendarDays, Compass, MapPin } from 'lucide-react';
+import { CalendarDays, Compass, MapPin, Sparkles } from 'lucide-react';
 import { PhotoImage } from '../../../components/PhotoImage';
 import type { UseFilteredTrips } from '../../trips/hooks/useFilteredTrips';
 import { FilterBar } from '../../trips/components/filters/FilterBar';
@@ -103,6 +104,14 @@ function YearSection({ group }: { group: YearGroup }) {
       <div className="flex items-center gap-3">
         <span className="font-display text-2xl font-semibold text-ink">{group.year}</span>
         <span className="h-px flex-1 bg-slate/15" />
+        <Link
+          to={`/review?year=${group.year}`}
+          aria-label={`View ${group.year} Year End Review animation`}
+          className="flex h-9 items-center gap-1.5 rounded-full border border-slate/20 bg-surface/70 px-3 font-mono text-[11px] uppercase tracking-wider text-slate/70 transition-colors hover:border-brass hover:text-ink max-sm:h-11 max-sm:text-slate/90"
+        >
+          <Sparkles size={12} className="text-brass max-sm:text-brass-text" />
+          <span>{group.year} Review</span>
+        </Link>
         <span className="font-mono text-[11px] uppercase tracking-wide text-slate/50 max-sm:text-slate/80">
           {group.trips.length} {group.trips.length === 1 ? 'trip' : 'trips'}
         </span>

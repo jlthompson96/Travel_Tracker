@@ -18,6 +18,7 @@ import { TimelinePage } from './features/itinerary/components/TimelinePage';
 import { PassportPage } from './features/passport/components/PassportPage';
 import { PlanPage } from './features/planning/components/PlanPage';
 import { ComparePage } from './features/compare/components/ComparePage';
+import { YearReviewPage } from './features/review/components/YearReviewPage';
 import { TripDetailModal } from './features/trips/components/TripDetails/TripDetailModal';
 import { useFilteredTrips } from './features/trips/hooks/useFilteredTrips';
 
@@ -197,6 +198,7 @@ export default function App() {
           <Route path="/insights" element={<InsightsPage />} />
           <Route path="/plan" element={<PlanPage />} />
           <Route path="/compare" element={<ComparePage />} />
+          <Route path="/review" element={<YearReviewPage />} />
           {/* Stale bookmarks land on the dashboard rather than a blank page.
             * `replace` so back doesn't bounce straight into the dead URL. */}
           <Route path="*" element={<Navigate to="/" replace />} />

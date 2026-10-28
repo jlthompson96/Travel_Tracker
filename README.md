@@ -95,7 +95,7 @@ defensively across all four possible result types instead of assuming one.
 
 ## Tabs
 
-Eight tabs, each a real route (`react-router-dom`, paths in
+Nine tabs, each a real route (`react-router-dom`, paths in
 `navigation/tabs.tsx`) so back/forward and shared links work. `?trip=<id>`
 stays a search param, so it layers over whichever tab you're on. All read from
 the same `useTrips()` / `useFilteredTrips()` data:
@@ -148,6 +148,14 @@ the same `useTrips()` / `useFilteredTrips()` data:
   see them side by side (status, country, trip type, dates, rating,
   priority, distance from home, notes). Aimed at weighing Bucket List
   candidates against each other.
+- **Year Review** (`features/review/`) — an animated, cinematic Year End Review
+  ("Travel Wrapped") for any selected year. Traces the journey of that year with
+  an animated airplane ✈️ gliding along curved great-circle flight arcs between
+  home (Fort Mill, SC) and each destination (or a sequential "Grand Tour" across
+  the globe). Displays stop-by-stop destination spotlights with rotating passport
+  stamps, photos, notes, dates, and ratings, plus playback controls (play, pause,
+  speed 1x/1.5x/2x, jump to stop, replay) and a shareable "Year in Review" Boarding
+  Pass recap card exportable as a high-res image.
 
 ### Cross-cutting features
 

@@ -2,7 +2,7 @@ import { webkit, devices } from 'playwright';
 import { seedUnlocked } from './unlock.mjs';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173/';
-const TABS = ['Trips', 'Map', 'Passport', 'Miles', 'timeline', 'insights', 'plan', 'compare'];
+const TABS = ['Trips', 'Map', 'Passport', 'Miles', 'timeline', 'insights', 'plan', 'compare', 'review'];
 
 /** Runs in the page: composite each text node's colour over its real
  * background and report anything under the WCAG AA threshold for its size. */

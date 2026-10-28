@@ -7,6 +7,7 @@ import {
   Map as MapIcon,
   Milestone,
   Scale,
+  Sparkles,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -18,7 +19,8 @@ export type Tab =
   | 'miles'
   | 'insights'
   | 'plan'
-  | 'compare';
+  | 'compare'
+  | 'review';
 
 export interface TabDef {
   id: Tab;
@@ -41,6 +43,7 @@ export const TABS: TabDef[] = [
   { id: 'insights', label: 'Insights', short: 'Insights', path: '/insights', icon: BarChart3 },
   { id: 'plan', label: 'Plan', short: 'Plan', path: '/plan', icon: ListOrdered },
   { id: 'compare', label: 'Compare', short: 'Compare', path: '/compare', icon: Scale },
+  { id: 'review', label: 'Year Review', short: 'Review', path: '/review', icon: Sparkles },
 ];
 
 /**
