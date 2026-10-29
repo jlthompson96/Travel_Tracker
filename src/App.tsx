@@ -16,6 +16,7 @@ import { MilesPage } from './features/stats/components/MilesPage';
 import { TripTimeline } from './features/itinerary/components/TripTimeline';
 import { TimelinePage } from './features/itinerary/components/TimelinePage';
 import { PassportPage } from './features/passport/components/PassportPage';
+import { ScrapbookPage } from './features/scrapbook/components/ScrapbookPage';
 import { PlanPage } from './features/planning/components/PlanPage';
 import { ComparePage } from './features/compare/components/ComparePage';
 import { YearReviewPage } from './features/review/components/YearReviewPage';
@@ -194,6 +195,7 @@ export default function App() {
           <Route path="/map" element={<MapPage {...filtering} />} />
           <Route path="/timeline" element={<TimelinePage {...filtering} />} />
           <Route path="/passport" element={<PassportPage />} />
+          <Route path="/scrapbook" element={<ScrapbookPage />} />
           <Route path="/miles" element={<MilesPage />} />
           <Route path="/insights" element={<InsightsPage />} />
           <Route path="/plan" element={<PlanPage />} />

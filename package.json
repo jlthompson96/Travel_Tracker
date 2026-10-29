@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/mirror-photos.mjs && vite",
     "build": "tsc -b tsconfig.json api/tsconfig.json && node scripts/mirror-photos.mjs && node scripts/fetch-climate.mjs && vite build",
     "preview": "vite preview",
     "test": "vitest run",

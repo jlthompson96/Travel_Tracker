@@ -23,7 +23,8 @@ export function PhotoImage({
   alt: string;
   loading?: 'lazy' | 'eager';
 }) {
-  const [failed, setFailed] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const failed = failedUrl === photo.url;
 
   if (failed) {
     return (
@@ -46,7 +47,7 @@ export function PhotoImage({
       alt={alt}
       loading={loading}
       decoding="async"
-      onError={() => setFailed(true)}
+      onError={() => setFailedUrl(photo.url)}
       className={className}
     />
   );

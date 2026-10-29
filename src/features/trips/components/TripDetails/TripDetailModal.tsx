@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useIsMobile } from '../../../../hooks/useMediaQuery';
 import { useBodyScrollLock } from '../../../../hooks/useBodyScrollLock';
 import { useFocusTrap } from '../../../../hooks/useFocusTrap';
-import { CalendarDays, Check, Link as LinkIcon, MapPin, StickyNote, X, ExternalLink } from 'lucide-react';
+import { CalendarDays, Camera, Check, Link as LinkIcon, MapPin, StickyNote, X, ExternalLink } from 'lucide-react';
 import type { Trip } from '../../../../types/travel';
 import { PassportStamp } from '../PassportStamp';
 import { formatDateRange, formatVisitLabel } from '../../utils/formatTrip';
@@ -247,6 +248,17 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
                 </div>
 
                 <div className="no-print flex items-center gap-4 max-sm:gap-1">
+                  {trip.status === 'Been There' && (
+                    <Link
+                      to={`/scrapbook?trip=${trip.id}`}
+                      onClick={onClose}
+                      className="flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-brass-text hover:underline max-sm:min-h-touch max-sm:px-2"
+                    >
+                      <Camera size={12} />
+                      Scrapbook
+                    </Link>
+                  )}
+
                   <button
                     type="button"
                     onClick={copyShareLink}

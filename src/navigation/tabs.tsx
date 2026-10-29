@@ -1,6 +1,7 @@
 import {
   BarChart3,
   BookOpen,
+  Camera,
   Clock,
   LayoutGrid,
   ListOrdered,
@@ -16,6 +17,7 @@ export type Tab =
   | 'map'
   | 'timeline'
   | 'passport'
+  | 'scrapbook'
   | 'miles'
   | 'insights'
   | 'plan'
@@ -39,6 +41,7 @@ export const TABS: TabDef[] = [
   { id: 'map', label: 'Map', short: 'Map', path: '/map', icon: MapIcon },
   { id: 'timeline', label: 'Timeline', short: 'Timeline', path: '/timeline', icon: Clock },
   { id: 'passport', label: 'Passport', short: 'Passport', path: '/passport', icon: BookOpen },
+  { id: 'scrapbook', label: 'Scrapbook', short: 'Scrapbook', path: '/scrapbook', icon: Camera },
   { id: 'miles', label: 'Miles Traveled', short: 'Miles', path: '/miles', icon: Milestone },
   { id: 'insights', label: 'Insights', short: 'Insights', path: '/insights', icon: BarChart3 },
   { id: 'plan', label: 'Plan', short: 'Plan', path: '/plan', icon: ListOrdered },
