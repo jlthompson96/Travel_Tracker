@@ -2,7 +2,7 @@ import { webkit, devices } from 'playwright';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4173/';
 const WIDTHS = [375, 390, 393, 430];
-const TABS = ['dashboard', 'map', 'timeline', 'passport', 'miles', 'insights', 'plan', 'compare'];
+const TABS = ['dashboard', 'map', 'timeline', 'passport', 'scrapbook', 'miles', 'insights', 'plan', 'compare', 'review'];
 // Mobile shows 4 primary + More; the other three live in the sheet.
 const BAR_LABELS = ['Trips', 'Map', 'Passport', 'Miles', 'More'];
 

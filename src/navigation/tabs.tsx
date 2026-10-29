@@ -1,12 +1,14 @@
 import {
   BarChart3,
   BookOpen,
+  Camera,
   Clock,
   LayoutGrid,
   ListOrdered,
   Map as MapIcon,
   Milestone,
   Scale,
+  Sparkles,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -15,10 +17,12 @@ export type Tab =
   | 'map'
   | 'timeline'
   | 'passport'
+  | 'scrapbook'
   | 'miles'
   | 'insights'
   | 'plan'
-  | 'compare';
+  | 'compare'
+  | 'review';
 
 export interface TabDef {
   id: Tab;
@@ -37,10 +41,12 @@ export const TABS: TabDef[] = [
   { id: 'map', label: 'Map', short: 'Map', path: '/map', icon: MapIcon },
   { id: 'timeline', label: 'Timeline', short: 'Timeline', path: '/timeline', icon: Clock },
   { id: 'passport', label: 'Passport', short: 'Passport', path: '/passport', icon: BookOpen },
+  { id: 'scrapbook', label: 'Scrapbook', short: 'Scrapbook', path: '/scrapbook', icon: Camera },
   { id: 'miles', label: 'Miles Traveled', short: 'Miles', path: '/miles', icon: Milestone },
   { id: 'insights', label: 'Insights', short: 'Insights', path: '/insights', icon: BarChart3 },
   { id: 'plan', label: 'Plan', short: 'Plan', path: '/plan', icon: ListOrdered },
   { id: 'compare', label: 'Compare', short: 'Compare', path: '/compare', icon: Scale },
+  { id: 'review', label: 'Year Review', short: 'Review', path: '/review', icon: Sparkles },
 ];
 
 /**

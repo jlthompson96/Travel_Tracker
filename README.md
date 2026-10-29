@@ -16,10 +16,10 @@
 
 # Travel Tracker
 
-Every trip you've taken, and every one you still want to, pulled live from a Notion database and laid out as a passport, a map and a timeline. Rate and annotate trips, stamp a Bucket List destination as visited, count the miles from home, and plan what's next. It installs as a PWA and keeps working offline.
+Every trip you've taken, and every one you still want to, pulled live from a Notion database and laid out as a passport, a tactile scrapbook, an interactive map, and an animated year-end flight journey. Rate and annotate trips, stamp a Bucket List destination as visited, count the miles from home, relive memories with vintage boarding pass stubs and Polaroid photo spreads, and plan what's next. It installs as a PWA and keeps working offline.
 
 <p align="center">
-  <img src="docs/assets/tabs.svg" alt="Travel Tracker tabs: Dashboard, Map, Timeline, Passport, Miles Traveled, Insights, Plan and Compare" width="100%">
+  <img src="docs/assets/tabs.svg" alt="Travel Tracker tabs: Dashboard, Map, Timeline, Passport, Scrapbook, Miles Traveled, Insights, Plan, Compare, and Year Review" width="100%">
 </p>
 
 ## At a glance
@@ -32,10 +32,12 @@ flowchart LR
     Q --> T2["🗺️ Map"]
     Q --> T3["🕰️ Timeline"]
     Q --> T4["🛂 Passport"]
-    Q --> T5["✈️ Miles"]
-    Q --> T6["📊 Insights"]
-    Q --> T7["📝 Plan"]
-    Q --> T8["⚖️ Compare"]
+    Q --> T5["📷 Scrapbook"]
+    Q --> T6["✈️ Miles"]
+    Q --> T7["📊 Insights"]
+    Q --> T8["📝 Plan"]
+    Q --> T9["⚖️ Compare"]
+    Q --> T10["✨ Year Review"]
 ```
 
 A trip's life, as the app sees it:
@@ -49,7 +51,7 @@ stateDiagram-v2
     BucketList --> BeenThere: Mark visited (sets the date)
     BeenThere: Been There
     BeenThere --> BeenThere: Rate, add notes
-    BeenThere --> [*]: Passport, Timeline and Miles
+    BeenThere --> [*]: Passport, Scrapbook, Timeline, Miles & Year Review
 ```
 
 ## About the data
@@ -95,7 +97,7 @@ defensively across all four possible result types instead of assuming one.
 
 ## Tabs
 
-Eight tabs, each a real route (`react-router-dom`, paths in
+Ten tabs, each a real route (`react-router-dom`, paths in
 `navigation/tabs.tsx`) so back/forward and shared links work. `?trip=<id>`
 stays a search param, so it layers over whichever tab you're on. All read from
 the same `useTrips()` / `useFilteredTrips()` data:
@@ -114,6 +116,12 @@ the same `useTrips()` / `useFilteredTrips()` data:
 - **Passport** (`features/passport/`) — every "Been There" trip as a stamp in
   a flip-through passport book (`PassportBook.tsx`). It prints as landscape
   sheets and can be shared as an image (see *Share the passport* below).
+- **Scrapbook** (`features/scrapbook/`) — an interactive, tactile travel photo album
+  and memory book. Presents each visited trip on an album spread with Polaroid-style
+  prints, washi tape corner mounts, perforated vintage boarding pass ticket stubs,
+  pinned typewriter field notes, travel stickers, and rotating passport stamps.
+  Supports page-turning and swipe gestures, a continuous Memory Wall collage view,
+  full-screen photo lightbox, and one-click high-resolution PNG spread exports.
 - **Miles Traveled** (`MilesPage.tsx`) — an infographic built around
   `HOME_LOCATION` (hardcoded to Fort Mill, SC in `notionAdapter.ts` — there's
   no home-base property in Notion): a hero total of round-trip miles to
@@ -148,6 +156,14 @@ the same `useTrips()` / `useFilteredTrips()` data:
   see them side by side (status, country, trip type, dates, rating,
   priority, distance from home, notes). Aimed at weighing Bucket List
   candidates against each other.
+- **Year Review** (`features/review/`) — an animated, cinematic Year End Review
+  ("Travel Wrapped") for any selected year. Traces the journey of that year with
+  an animated airplane ✈️ gliding along curved great-circle flight arcs between
+  home (Fort Mill, SC) and each destination (or a sequential "Grand Tour" across
+  the globe). Displays stop-by-stop destination spotlights with rotating passport
+  stamps, photos, notes, dates, and ratings, plus playback controls (play, pause,
+  speed 1x/1.5x/2x, jump to stop, replay) and a shareable "Year in Review" Boarding
+  Pass recap card exportable as a high-res image.
 
 ### Cross-cutting features
 
@@ -157,27 +173,27 @@ the same `useTrips()` / `useFilteredTrips()` data:
   home, rating, priority, or A–Z.
 - **Editing** (`TripDetails/TripEditor.tsx`) — rate a trip, set its priority,
   write notes, and **Mark visited** (flips Bucket List → Been There with a
-  date, which is what moves a trip into the Timeline and Passport). Writes go
+  date, which is what moves a trip into the Timeline, Passport, and Scrapbook). Writes go
   through `useUpdateTrip()`, which updates the cache optimistically and rolls
   back on failure. Renders only when the site is unlocked.
 - **Trip detail modal** (`TripDetails/`) — adds a photo lightbox with
-  keyboard/arrow navigation (`PhotoLightbox.tsx`), a "best time to visit"
+  keyboard/arrow navigation (`PhotoLightbox.tsx`), a direct jump link to that trip's **Scrapbook** spread (`/scrapbook?trip=<id>`), a "best time to visit"
   climate chart (`WeatherWidget.tsx`, backed by the free keyless Open-Meteo
   archive API — see `utils/weather.ts`), and a **Copy link** button. The
   modal syncs `?trip=<id>` into the URL, and `App.tsx` reads that param on
   load, so a copied link deep-links straight to that trip.
+- **Responsive navigation** (`navigation/tabs.tsx`, `components/BottomTabBar.tsx`,
+  `components/MoreSheet.tsx`) — on desktop, a full pill row displays all 10 tabs; on mobile, an iOS HIG-compliant 5-slot bottom bar surfaces primary tabs (Trips, Map, Passport, Miles) plus a "More" action that triggers a slide-up sheet for secondary tabs (Timeline, Scrapbook, Insights, Plan, Compare, Year Review).
 - **Dark mode** (`hooks/useTheme.ts`) — toggle in the header, respects
   `prefers-color-scheme` on first visit, persists to `localStorage`.
 - **Print / PWA** — a print stylesheet in `index.css` strips nav and filter
   chrome (anything `.no-print`) and always prints the light palette; a
   manifest + service worker (`public/manifest.webmanifest`, `public/sw.js`)
   make the app installable and usable offline.
-- **Share the passport** (`SharePassportButton.tsx`) — renders the passport to
-  a PNG and hands it to the OS share sheet, falling back to a download. It
-  rasterizes a purpose-built flat node (`SharePassportCard.tsx`), *not* the
-  interactive book: each leaf carries `rotateY(180deg)` with
-  `backface-visibility: hidden`, and html-to-image reproduces the transform
-  but not the culling, so capturing the book comes out mirror-imaged.
+- **Shareable high-res exports** — client-side 2x retina image generation via `html-to-image`, dispatched to the native Web Share API with an automatic PNG download fallback:
+  - **Passport** (`SharePassportButton.tsx`) — renders the passport to a PNG. It rasterizes a purpose-built flat node (`SharePassportCard.tsx`), *not* the interactive 3D book: each leaf carries `rotateY(180deg)` with `backface-visibility: hidden`, and `html-to-image` reproduces the transform but not the culling, so capturing the book comes out mirror-imaged.
+  - **Scrapbook spreads** (`ShareScrapbookButton.tsx`) — exports the vintage photo album spread complete with Polaroids, washi tape, ticket stubs, stickers, and journal notes.
+  - **Year in Review boarding passes** (`YearRecapSummary.tsx`) — exports a vintage boarding pass travel summary with flight miles, visited stops, and highlights.
 
 ## Architecture: deployment and data flow
 
@@ -215,7 +231,8 @@ flowchart LR
     subgraph Browser["🌍 Browser (PWA)"]
         UI["React app"]
         SW["Service worker<br/>network-first data · cache-first assets"]
-        LS[("localStorage<br/>bucket-list plan · theme")]
+        LS[("localStorage<br/>bucket-list plan · theme · write token")]
+        EX["html-to-image<br/>Passport, Scrapbook & Review PNGs"]
     end
     subgraph Vercel["▲ Vercel"]
         GET["GET /api/notion/travel-tracker"]
@@ -226,6 +243,7 @@ flowchart LR
     SW --> GET & ST
     UI -- "edits (when unlocked)" --> PATCH
     UI <--> LS
+    UI --> EX
     GET & PATCH -- "NOTION_TOKEN" --> NT[("Notion API")]
     UI -- "weather widget" --> OM["Open-Meteo archive"]
     subgraph Build["npm run build"]
@@ -240,27 +258,41 @@ flowchart LR
 travel-tracker/
 ├── api/
 │   └── notion/
-│       └── travel-tracker.ts        # example backend proxy (see note above)
+│       ├── travel-tracker.ts        # GET proxy for Notion data-source query
+│       └── trip.ts                  # PATCH route for trip updates (guarded by TT_WRITE_SECRET)
 ├── public/
 │   ├── manifest.webmanifest         # PWA manifest
-│   ├── sw.js                        # service worker — see "Offline / PWA" below
+│   ├── sw.js                        # service worker (offline precaching + runtime caching)
 │   └── icon-192.png / icon-512.png / icon.svg
+├── scripts/
+│   ├── mirror-photos.mjs            # download & resize Notion S3 photos to stable paths
+│   ├── fetch-climate.mjs            # precompute Open-Meteo monthly climate averages
+│   └── mobile-audit/                # WebKit audit suite (overflow, touch targets, contrast)
 ├── src/
 │   ├── types/
 │   │   └── travel.ts                # domain types + raw Notion API types
 │   ├── utils/
 │   │   ├── transformNotionData.ts   # pure Notion JSON -> Trip parsers
-│   │   ├── geo.ts                   # haversine distance
+│   │   ├── geo.ts                   # haversine distance & bearing
+│   │   ├── photoNaming.ts           # deterministic photo URLs across build & client
 │   │   ├── regions.ts               # single source of truth: country -> continent
 │   │   └── weather.ts               # Open-Meteo archive -> monthly climate averages
 │   ├── services/
 │   │   └── notionAdapter.ts         # fetch + TanStack Query hook + stats + HOME_LOCATION
 │   ├── hooks/
-│   │   └── useTheme.ts              # light/dark toggle + persistence
+│   │   ├── useTheme.ts              # light/dark toggle + persistence
+│   │   ├── useMediaQuery.ts         # responsive breakpoint detection
+│   │   └── useBodyScrollLock.ts
 │   ├── lib/
-│   │   └── queryClient.ts
+│   │   ├── queryClient.ts
+│   │   └── writeToken.ts            # password-backed write token storage
+│   ├── navigation/
+│   │   └── tabs.tsx                 # 10 tab definitions, icons, paths & mobile primary tabs
 │   ├── components/
-│   │   └── PasswordGate.tsx         # client-side deterrent, not real auth — see file header
+│   │   ├── PasswordGate.tsx         # unlock overlay + write token acquisition
+│   │   ├── BottomTabBar.tsx         # iOS HIG-style 5-slot bottom bar for mobile
+│   │   ├── MoreSheet.tsx            # mobile slide-up sheet for secondary tabs
+│   │   └── PhotoImage.tsx           # lazy-loaded image with blur placeholder
 │   ├── features/
 │   │   ├── trips/
 │   │   │   ├── components/
@@ -273,6 +305,7 @@ travel-tracker/
 │   │   │   │   ├── PassportStamp.tsx      # shared signature element
 │   │   │   │   └── TripDetails/
 │   │   │   │       ├── TripDetailModal.tsx
+│   │   │   │       ├── TripEditor.tsx        # in-modal rating/status/notes editor
 │   │   │   │       ├── TripLocationMap.tsx
 │   │   │   │       ├── TripPictures.tsx
 │   │   │   │       ├── PhotoLightbox.tsx
@@ -289,24 +322,58 @@ travel-tracker/
 │   │   │   │   └── MapPage.tsx      # full-page Map tab
 │   │   │   └── utils/
 │   │   │       └── mapIcons.ts      # divIcon markers: status dot, visit-count badge, home
+│   │   ├── itinerary/
+│   │   │   └── components/
+│   │   │       ├── TripTimeline.tsx # dashboard sidebar preview — see "Schema gaps" above
+│   │   │       └── TimelinePage.tsx # full-page Timeline tab
+│   │   ├── passport/
+│   │   │   ├── components/
+│   │   │   │   ├── PassportPage.tsx
+│   │   │   │   ├── PassportBook.tsx       # 3D interactive flip-book of stamps
+│   │   │   │   ├── PassportLeaf.tsx
+│   │   │   │   └── SharePassportButton.tsx# high-res PNG passport spread export
+│   │   │   └── utils/
+│   │   │       └── buildPassportPages.ts
+│   │   ├── scrapbook/
+│   │   │   ├── components/
+│   │   │   │   ├── ScrapbookPage.tsx      # album spread & memory wall views
+│   │   │   │   ├── ScrapbookAlbum.tsx     # interactive book with page flips & swipe
+│   │   │   │   ├── ScrapbookSpread.tsx    # Polaroid prints, ticket stubs, washi tape
+│   │   │   │   ├── ScrapbookGrid.tsx      # continuous Memory Wall collage
+│   │   │   │   ├── PolaroidPhoto.tsx      # photo with vintage caption mount
+│   │   │   │   ├── TicketStub.tsx         # perforated boarding pass stub
+│   │   │   │   └── ShareScrapbookButton.tsx# 2x PNG scrapbook spread export
+│   │   │   └── utils/
+│   │   │       └── scrapbookLayout.ts     # trip photo sorting & spread composition
 │   │   ├── stats/
 │   │   │   └── components/
 │   │   │       ├── TripStats.tsx    # dashboard stat row
-│   │   │       └── MilesPage.tsx    # Miles Traveled tab + world coverage
+│   │   │       ├── MilesPage.tsx    # Miles Traveled tab + world coverage
+│   │   │       └── charts.tsx       # shared brass bar charts & leaderboards
 │   │   ├── planning/               # Plan tab — localStorage-only, never syncs
 │   │   │   ├── components/
 │   │   │   │   ├── PlanPage.tsx
 │   │   │   │   ├── BucketListPlanCard.tsx
+│   │   │   │   ├── SeasonsPlanner.tsx
+│   │   │   │   ├── TripClusters.tsx
 │   │   │   │   └── NextAdventurePicker.tsx
-│   │   │   └── hooks/
-│   │   │       └── useBucketListPlan.ts
+│   │   │   ├── hooks/
+│   │   │   │   └── useBucketListPlan.ts
+│   │   │   └── utils/
+│   │   │       └── clusterTrips.ts
 │   │   ├── compare/
 │   │   │   └── components/
 │   │   │       └── ComparePage.tsx
-│   │   └── itinerary/
-│   │       └── components/
-│   │           ├── TripTimeline.tsx # dashboard sidebar preview — see "Schema gaps" above
-│   │           └── TimelinePage.tsx # full-page Timeline tab
+│   │   └── review/
+│   │       ├── components/
+│   │       │   ├── YearReviewPage.tsx     # animated flight journey & recap
+│   │       │   ├── FlightReviewMap.tsx    # Leaflet map with animated flight path
+│   │       │   ├── FlightControls.tsx     # play/pause, scrub, speed 1x/1.5x/2x
+│   │       │   ├── PlaceHighlightCard.tsx # destination spotlight with stamp & photos
+│   │       │   └── YearRecapSummary.tsx   # shareable Boarding Pass recap card PNG
+│   │       └── utils/
+│   │           ├── flightMath.ts          # great-circle interpolation & plane heading
+│   │           └── yearStats.ts           # year metrics, flight leg generation
 │   ├── App.tsx
 │   ├── main.tsx
 │   └── index.css                    # theme tokens, print + reduced-motion rules

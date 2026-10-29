@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CalendarRange, Compass, Layers, MapPinned, Plane, Sparkles, Star } from 'lucide-react';
 import { computeTripStats, useTrips } from '../../../services/notionAdapter';
@@ -93,6 +94,34 @@ export function InsightsPage() {
         <EmptyState />
       ) : (
         <>
+          {/* Year Review Callout Banner */}
+          <Link
+            to="/review"
+            className="group flex items-center justify-between gap-4 rounded-xl border border-brass/40 bg-surface/80 p-4 transition-all hover:border-brass hover:bg-surface max-sm:flex-col max-sm:items-start"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ink-navy text-brass">
+                <Sparkles size={20} />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-brass max-sm:text-brass-text">
+                  Animated Flight Journey
+                </span>
+                <span className="font-display text-lg font-bold text-ink">
+                  Experience Your Year End Review
+                </span>
+                <span className="text-xs text-slate/70">
+                  Relive your adventures with an animated flight map and destination highlights
+                </span>
+              </div>
+            </div>
+
+            <span className="flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-brass bg-brass/10 px-4 font-mono text-xs font-semibold uppercase tracking-wider text-ink transition-colors group-hover:bg-brass group-hover:text-ink-navy max-sm:h-11 max-sm:w-full max-sm:justify-center">
+              <span>Watch Review</span>
+              <Plane size={13} />
+            </span>
+          </Link>
+
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <StatTile
               icon={<Plane size={14} />}

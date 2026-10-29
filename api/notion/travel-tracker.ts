@@ -10,6 +10,8 @@
  * Tracker page. Without one it returns an empty fallback rather than failing,
  * so the app still boots uncredentialed.
  */
+import fs from 'node:fs';
+import path from 'node:path';
 import { Client } from '@notionhq/client';
 // Extension is explicit because Vercel compiles this function with node16-style
 // module resolution, which rejects extensionless relative imports. `.js` is the
@@ -38,14 +40,31 @@ interface PhotoBearingPage {
 }
 
 function rewritePhotoUrlsToMirror(data: { results?: unknown[] }): void {
+  const photoDir = path.join(process.cwd(), 'public', 'photos');
+  const distPhotoDir = path.join(process.cwd(), 'dist', 'photos');
+
   for (const page of data.results ?? []) {
     const files = (page as PhotoBearingPage).properties?.Photos?.files ?? [];
     for (const file of files) {
       if (file.type !== 'file' || !file.file?.url) continue;
       const localName = localPhotoName(file.file.url);
       if (!localName) continue;
-      file.file.url = `/photos/${localName}`;
-      delete file.file.expiry_time;
+
+      let existsLocally = false;
+      try {
+        existsLocally =
+          fs.existsSync(path.join(photoDir, localName)) ||
+          fs.existsSync(path.join(distPhotoDir, localName));
+      } catch {
+        // Leave as false on filesystem check failure
+      }
+
+      // Only rewrite to local path if the mirrored file actually exists on disk.
+      // If it hasn't been mirrored, KEEP the original signed Notion URL so the photo still loads!
+      if (existsLocally) {
+        file.file.url = `/photos/${localName}`;
+        delete file.file.expiry_time;
+      }
     }
   }
 }
