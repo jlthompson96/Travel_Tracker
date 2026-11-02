@@ -23,7 +23,12 @@ function useIsSpread(): boolean {
   return !useIsMobile();
 }
 
-export function PassportBook({ pages }: { pages: PassportPage[] }) {
+interface PassportBookProps {
+  pages: PassportPage[];
+  onTurnedChange?: (turned: number) => void;
+}
+
+export function PassportBook({ pages, onTurnedChange }: PassportBookProps) {
   const leaves = useMemo<Leaf[]>(() => {
     const result: Leaf[] = [];
     for (let i = 0; i < pages.length; i += 2) {
@@ -32,7 +37,17 @@ export function PassportBook({ pages }: { pages: PassportPage[] }) {
     return result;
   }, [pages]);
 
-  const [turned, setTurned] = useState(0);
+  const [turned, setTurnedState] = useState(0);
+  const setTurned = useCallback(
+    (updater: number | ((current: number) => number)) => {
+      setTurnedState((current) => {
+        const next = typeof updater === 'function' ? updater(current) : updater;
+        onTurnedChange?.(next);
+        return next;
+      });
+    },
+    [onTurnedChange],
+  );
   /** The leaf currently in flight — it has to float above both stacks. */
   const [flipping, setFlipping] = useState<number | null>(null);
 
@@ -48,7 +63,7 @@ export function PassportBook({ pages }: { pages: PassportPage[] }) {
       setFlipping(current);
       return current + 1;
     });
-  }, [leaves.length]);
+  }, [leaves.length, setTurned]);
 
   const goBack = useCallback(() => {
     setTurned((current) => {
@@ -56,7 +71,7 @@ export function PassportBook({ pages }: { pages: PassportPage[] }) {
       setFlipping(current - 1);
       return current - 1;
     });
-  }, []);
+  }, [setTurned]);
 
   // Scoped to the book rather than the document: TripDetailModal installs its
   // own keydown listener while open, and a global one here would fight it.

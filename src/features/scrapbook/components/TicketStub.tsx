@@ -17,7 +17,7 @@ export function TicketStub({ trip, className = '' }: TicketStubProps) {
 
   return (
     <div
-      className={`relative select-none transition-transform duration-200 hover:rotate-0 ${className}`}
+      className={`ticket-stub-card relative select-none transition-transform duration-200 hover:rotate-0 ${className}`}
       style={{ transform: `rotate(${tilt}deg)` }}
     >
       <div className="relative flex max-w-sm flex-col overflow-hidden rounded-md border-2 border-dashed border-brass/50 bg-[#FBF7EE] p-4 text-ink-navy shadow-md sm:flex-row sm:p-0">
