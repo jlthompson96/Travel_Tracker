@@ -8,10 +8,11 @@ interface PolaroidPhotoProps {
   index: number;
   tripId: string;
   destination: string;
-  onSelect: (index: number) => void;
+  onSelect?: (index: number) => void;
   size?: 'sm' | 'md' | 'lg';
   caption?: string;
   showTape?: boolean;
+  loading?: 'lazy' | 'eager';
 }
 
 export function PolaroidPhoto({
@@ -23,6 +24,7 @@ export function PolaroidPhoto({
   size = 'md',
   caption,
   showTape = true,
+  loading = 'lazy',
 }: PolaroidPhotoProps) {
   const tilt = useMemo(() => getPolaroidTilt(tripId, photo.id, index), [tripId, photo.id, index]);
   const tape = useMemo(() => getWashiTapeStyle(`${tripId}-${photo.id}`), [tripId, photo.id]);
@@ -60,15 +62,16 @@ export function PolaroidPhoto({
       {/* Polaroid Card */}
       <button
         type="button"
-        onClick={() => onSelect(index)}
+        onClick={() => onSelect?.(index)}
         aria-label={`View photo: ${cleanCaption}`}
-        className={`group flex flex-col items-center rounded-sm border border-slate/15 bg-white shadow-md transition-all duration-200 hover:rotate-0 hover:scale-[1.03] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-brass ${sizeClasses}`}
+        className={`group polaroid-card flex flex-col items-center rounded-sm border border-slate/15 bg-white shadow-md transition-all duration-200 hover:rotate-0 hover:scale-[1.03] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-brass ${sizeClasses}`}
       >
         {/* Photo Box */}
         <div className="relative aspect-square w-full overflow-hidden rounded-xs bg-slate/10 shadow-inner">
           <PhotoImage
             photo={photo}
             alt={cleanCaption}
+            loading={loading}
             className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
           />
         </div>

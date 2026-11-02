@@ -19,10 +19,26 @@ import { toSpreads, type PassportPage, type PassportSpread } from '../utils/buil
  * stylesheet hides `[aria-hidden='true']` outright — the attribute would erase
  * these sheets from the very medium they exist for.
  */
-export function PassportPrintSheets({ pages }: { pages: PassportPage[] }) {
+interface PassportPrintSheetsProps {
+  pages: PassportPage[];
+  currentSpreadIndex?: number;
+  mode?: 'current' | 'all';
+}
+
+export function PassportPrintSheets({
+  pages,
+  currentSpreadIndex = 0,
+  mode = 'all',
+}: PassportPrintSheetsProps) {
+  const allSpreads = toSpreads(pages);
+  const spreadsToPrint =
+    mode === 'current'
+      ? [allSpreads[currentSpreadIndex]].filter(Boolean)
+      : allSpreads;
+
   return (
     <div className="print-only">
-      {toSpreads(pages).map((spread, index) => (
+      {spreadsToPrint.map((spread, index) => (
         <PrintSheet key={index} spread={spread} />
       ))}
     </div>

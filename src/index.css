@@ -329,3 +329,105 @@
     background: white !important;
   }
 }
+
+/* Scoped print document for individual trips (see TripPrintDocument.tsx). */
+.trip-print-document {
+  display: none;
+}
+
+@media print {
+  html.printing-trip header,
+  html.printing-trip nav,
+  html.printing-trip #root {
+    display: none !important;
+  }
+
+  html.printing-trip .trip-print-document {
+    display: block !important;
+    background: white !important;
+    color: #14232e !important;
+  }
+
+  html.printing-trip body {
+    background: white !important;
+  }
+
+  .trip-print-document [role='img'] {
+    mix-blend-mode: normal !important;
+    opacity: 1 !important;
+  }
+
+  .trip-print-document .photo-card,
+  .trip-print-document .notes-card {
+    break-inside: avoid;
+  }
+}
+
+/* Scoped print document for scrapbook album (see ScrapbookPrintDocument.tsx). */
+.scrapbook-print-container {
+  display: none;
+}
+
+@media print {
+  html.printing-scrapbook header,
+  html.printing-scrapbook nav,
+  html.printing-scrapbook #root {
+    display: none !important;
+  }
+
+  html.printing-scrapbook .scrapbook-print-container {
+    display: block !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html.printing-scrapbook body {
+    background: white !important;
+  }
+
+  .scrapbook-print-sheet {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 10.2in;
+    /* In letter landscape (8.5in height with 0.35in margins leaves 7.8in).
+     * 7.55in guarantees the spread fits on one landscape page without spilling! */
+    height: 7.55in;
+    max-height: 7.55in;
+    margin: 0 auto;
+    padding: 0.35in 0.45in;
+    background: #F7F2E7 !important;
+    border: 3px solid #DCD3C1 !important;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    break-after: page !important;
+    page-break-after: always !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .scrapbook-print-sheet:last-child {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+
+  .scrapbook-print-sheet [role='img'] {
+    mix-blend-mode: normal !important;
+    opacity: 1 !important;
+  }
+
+  .scrapbook-print-sheet .polaroid-card,
+  .scrapbook-print-sheet .ticket-stub-card,
+  .scrapbook-print-sheet .journal-note-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+
+

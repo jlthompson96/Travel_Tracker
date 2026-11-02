@@ -18,7 +18,7 @@ export function JournalNote({ trip, className = '' }: JournalNoteProps) {
 
   return (
     <div
-      className={`relative select-none transition-transform duration-200 hover:rotate-0 ${className}`}
+      className={`journal-note-card relative select-none transition-transform duration-200 hover:rotate-0 ${className}`}
       style={{ transform: `rotate(${tilt}deg)` }}
     >
       {/* Brass Paperclip Element at Top Corner */}

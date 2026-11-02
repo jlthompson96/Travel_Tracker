@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Trip } from '../../../types/travel';
 import { ScrapbookSpread } from './ScrapbookSpread';
 import { ShareScrapbookButton } from './ShareScrapbookButton';
+import { PrintScrapbookButton } from './PrintScrapbookButton';
 
 interface ScrapbookAlbumProps {
   trips: Trip[];
@@ -65,7 +66,7 @@ export function ScrapbookAlbum({
       className="flex flex-col gap-4 focus:outline-none"
     >
       {/* Top Toolbar: Navigation & Export Button */}
-      <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+      <div className="relative z-20 flex flex-wrap items-center justify-between gap-3 px-1">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -92,7 +93,10 @@ export function ScrapbookAlbum({
           </button>
         </div>
 
-        <ShareScrapbookButton targetRef={spreadRef} destination={currentTrip.destination} />
+        <div className="flex items-center gap-2">
+          <PrintScrapbookButton trips={trips} currentIndex={currentIndex} />
+          <ShareScrapbookButton targetRef={spreadRef} destination={currentTrip.destination} />
+        </div>
       </div>
 
       {/* Interactive Spread with Swipe & Animated Transitions */}

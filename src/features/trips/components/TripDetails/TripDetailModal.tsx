@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useIsMobile } from '../../../../hooks/useMediaQuery';
 import { useBodyScrollLock } from '../../../../hooks/useBodyScrollLock';
 import { useFocusTrap } from '../../../../hooks/useFocusTrap';
-import { CalendarDays, Camera, Check, Link as LinkIcon, MapPin, StickyNote, X, ExternalLink } from 'lucide-react';
+import { CalendarDays, Camera, Check, Link as LinkIcon, MapPin, Printer, StickyNote, X, ExternalLink } from 'lucide-react';
 import type { Trip } from '../../../../types/travel';
 import { PassportStamp } from '../PassportStamp';
 import { formatDateRange, formatVisitLabel } from '../../utils/formatTrip';
@@ -14,6 +14,25 @@ import { PhotoLightbox } from './PhotoLightbox';
 import { TripLocationMap } from './TripLocationMap';
 import { WeatherWidget } from './WeatherWidget';
 import { TripEditor } from './TripEditor';
+import { TripPrintDocument } from './TripPrintDocument';
+
+const PRINTING_TRIP_CLASS = 'printing-trip';
+const TRIP_PAGE_STYLE_ID = 'trip-page-size';
+
+function withPortraitPage(print: () => void) {
+  if (!document.getElementById(TRIP_PAGE_STYLE_ID)) {
+    const style = document.createElement('style');
+    style.id = TRIP_PAGE_STYLE_ID;
+    style.media = 'print';
+    style.textContent = '@page { size: letter portrait; margin: 0.5in; }';
+    document.head.append(style);
+  }
+  print();
+}
+
+function removePortraitPage() {
+  document.getElementById(TRIP_PAGE_STYLE_ID)?.remove();
+}
 
 interface TripDetailModalProps {
   trip: Trip;
@@ -87,6 +106,31 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
 
   const dateLabel = formatDateRange(trip);
   const closeLightbox = () => setLightboxIndex(null);
+
+  useEffect(() => {
+    const handleBeforePrint = () => {
+      if (open) {
+        document.documentElement.classList.add(PRINTING_TRIP_CLASS);
+        withPortraitPage(() => {});
+      }
+    };
+    const cleanup = () => {
+      document.documentElement.classList.remove(PRINTING_TRIP_CLASS);
+      removePortraitPage();
+    };
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', cleanup);
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', cleanup);
+      cleanup();
+    };
+  }, [open]);
+
+  const handlePrint = () => {
+    document.documentElement.classList.add(PRINTING_TRIP_CLASS);
+    withPortraitPage(() => window.print());
+  };
 
   const copyShareLink = async () => {
     const url = new URL(window.location.href);
@@ -268,6 +312,16 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
                     {copied ? 'Copied' : 'Copy link'}
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="flex items-center gap-1 font-mono text-xs uppercase tracking-wide text-slate/60 hover:text-ink max-sm:min-h-touch max-sm:px-2 max-sm:text-slate/80"
+                    title="Print trip brief or save as PDF"
+                  >
+                    <Printer size={12} />
+                    Print
+                  </button>
+
                   <a
                     href={trip.url}
                     target="_blank"
@@ -290,6 +344,13 @@ export function TripDetailModal({ trip, open, onClose, visits, onSelectVisit }: 
   return (
     <>
       {modal}
+      {open &&
+        createPortal(
+          <div className="trip-print-document">
+            <TripPrintDocument trip={trip} visits={visits} />
+          </div>,
+          document.body,
+        )}
       {lightboxIndex != null && (
         <PhotoLightbox photos={trip.photos} index={lightboxIndex} onClose={closeLightbox} onNavigate={setLightboxIndex} />
       )}

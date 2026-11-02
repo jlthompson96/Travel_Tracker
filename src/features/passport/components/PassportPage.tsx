@@ -1,38 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { Printer } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
 import { useTrips, computeTripStats } from '../../../services/notionAdapter';
 import { PassportBook } from './PassportBook';
 import { PassportPrintSheets } from './PassportPrintSheets';
 import { SharePassportButton } from './SharePassportButton';
 import { SharePassportCard } from './SharePassportCard';
+import { PrintPassportButton } from './PrintPassportButton';
 import { buildPassportPages } from '../utils/buildPassportPages';
-
-/** Scopes the passport's print rules to this tab's button, so printing from the
- * Dashboard stays as it was. */
-const PRINTING_CLASS = 'printing-passport';
-
-const PAGE_SIZE_STYLE_ID = 'passport-page-size';
-
-/**
- * `@page` accepts no selector, so orientation can't live in index.css beside the
- * rest of the passport's print styles without forcing every other print in the
- * app to landscape too. Injecting it for the duration of this one print call is
- * the only way to scope it.
- */
-function withLandscapePage(print: () => void) {
-  if (!document.getElementById(PAGE_SIZE_STYLE_ID)) {
-    const style = document.createElement('style');
-    style.id = PAGE_SIZE_STYLE_ID;
-    style.media = 'print';
-    style.textContent = '@page { size: letter landscape; margin: 0.45in; }';
-    document.head.append(style);
-  }
-  print();
-}
-
-function removeLandscapePage() {
-  document.getElementById(PAGE_SIZE_STYLE_ID)?.remove();
-}
 
 /**
  * The payoff view: every place we've actually been, inked into a book you open
@@ -42,6 +15,9 @@ function removeLandscapePage() {
 export function PassportPage() {
   // Points at the flat SharePassportCard, not the book — see that file for why.
   const shareRef = useRef<HTMLDivElement>(null);
+  const [currentSpreadIndex, setCurrentSpreadIndex] = useState(0);
+  const [printMode, setPrintMode] = useState<'current' | 'all'>('all');
+
   const { data, isLoading, isError } = useTrips();
   const trips = useMemo(() => data ?? [], [data]);
   const stats = useMemo(() => computeTripStats(trips), [trips]);
@@ -54,27 +30,6 @@ export function PassportPage() {
       }),
     [trips, stats],
   );
-
-  // Safari returns from window.print() before the dialog closes, so the class
-  // has to come off on 'afterprint' rather than on the next line.
-  useEffect(() => {
-    const cleanup = () => {
-      document.documentElement.classList.remove(PRINTING_CLASS);
-      removeLandscapePage();
-    };
-    window.addEventListener('afterprint', cleanup);
-    // Also runs on unmount, so switching tabs mid-dialog can't leave the app
-    // stuck in landscape.
-    return () => {
-      window.removeEventListener('afterprint', cleanup);
-      cleanup();
-    };
-  }, []);
-
-  const print = () => {
-    document.documentElement.classList.add(PRINTING_CLASS);
-    withLandscapePage(() => window.print());
-  };
 
   return (
     <section className="flex flex-col gap-5">
@@ -91,18 +46,14 @@ export function PassportPage() {
             </p>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="relative z-20 flex shrink-0 items-center gap-2">
           {!isLoading && !isError && <SharePassportButton targetRef={shareRef} />}
-          <button
-            type="button"
-            onClick={print}
+          <PrintPassportButton
+            pages={pages}
+            currentSpreadIndex={currentSpreadIndex}
+            onPrintModeChange={setPrintMode}
             disabled={isLoading || isError}
-            aria-label="Print the passport"
-            title="Print the passport — or Save as PDF from the print dialog"
-            className="no-print flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate/20 bg-surface/50 text-slate/70 transition-colors hover:border-slate/40 hover:bg-surface/80 disabled:cursor-not-allowed disabled:opacity-35 max-sm:h-11 max-sm:w-11"
-          >
-            <Printer size={15} />
-          </button>
+          />
         </div>
       </div>
 
@@ -119,9 +70,13 @@ export function PassportPage() {
       {!isLoading && !isError && (
         <>
           <div className="no-print">
-            <PassportBook pages={pages} />
+            <PassportBook pages={pages} onTurnedChange={setCurrentSpreadIndex} />
           </div>
-          <PassportPrintSheets pages={pages} />
+          <PassportPrintSheets
+            pages={pages}
+            currentSpreadIndex={currentSpreadIndex}
+            mode={printMode}
+          />
           <SharePassportCard pages={pages} nodeRef={shareRef} />
         </>
       )}
